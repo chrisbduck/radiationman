@@ -1,0 +1,95 @@
+Evolution
+---------
+
+Shooter game - space style?
+	- Can we avoid just doing the power ups thing?
+	- Waves of enemies that evolve - later waves being immune to older weapons?
+
+Strategy game
+	- Choose which units to evolve for more abilities?
+	- RTS / TBS?
+		- I kind of want to do something real time, but pathfinding is too much effort for the time
+
+Platformer
+	- Collect mutation objects of some sort
+	- Go from defenceless -> punches -> kicks -> various weapons -> uber-destructive
+	- Need a point of difference though
+	- Dying of some radiation poisoning; needs to collect anti-radiation pills to stay alive?
+		- End of game = cure?
+	- Main character has some sort of mutation virus
+	- Some power-ups are safe - "stable mutation"
+
+Akira-style theme?
+	- Main character evolves to super-destructive and destroys everything?
+	- Need a game style though
+
+FPS/TPS - too hard
+
+God game
+	- Populous-y sort of thing?
+	- Actually might not be that hard to simulate lots of little people
+	- Isometric view could be tricky though, particularly if I'm trying to use point sprites
+		- No experience with isometric view - probably a bit risky
+		- Interesting though
+	- Assume the isometric view is OK for a moment.
+	- What do we evolve?
+		- Units:
+			- Basic
+				-> Worker
+					-> Builder
+					-> Gatherer
+					-> Teacher
+						-> Researcher
+				-> Warrior
+					-> Rock Thrower
+						-> Spear Thrower
+					-> Brawler
+						-> Martial Artist
+	- Sounds just like a bunch of clicking; probably not lots of fun
+
+Evolution game like Spore
+	- Need to think of a point of difference
+
+Roguelike?
+	- Implies unpolished; not sure really
+
+Racing game with evolution?
+	- Doesn't really seem to fit
+
+I'm going to go with the platformer.
+
+============================================================================
+
+Platformer
+----------
+
+	- Main character has some sort of mutation virus
+	- Some power-ups are safe - "stable mutation"
+	- Collect anti-radiation pills
+	- Fight enemies with punches and kicks
+	- Particle effect for radiation
+	- Radiation attack; kills all enemies but increases radiation count
+	- Power ups to evolve:
+		- Jump height
+		- Attack power
+			- Hand-to-hand
+			- Distance attack
+		- Movement speed
+		- Radiation tolerance?
+	- Cured at the end of the game (?)
+	
+Tasks:
+	- Programming:
+		- Movement
+		- Jumping
+		- Backgrounds
+		- Platforms
+		- Particles
+	- Art:
+		- Character
+		- Anti-radiation pills
+		- Stable mutation pills
+		- Enemies
+			- Need at least three varieties
+		- Platforms
+		- Background textures
