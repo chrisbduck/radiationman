@@ -7,11 +7,60 @@
 <script type="text/javascript" src="glMatrix-0.js"></script>
 <script type="text/javascript" src="webgl-utils.js"></script>
 <script type="text/javascript" src="useful.js"></script>
+<Script type="text/javascript" src="objects.js"></script>
 <script type="text/javascript" src="radiationman.js"></script>
 
-<!-- Vertex shader -->
-<script id="vertex-shader" type="x-shader/x-vertex">
-	/*attribute vec3 a_VertPos;
+<!-- Lit mesh vertex shader -->
+<script id="lit-mesh-vs" type="x-shader/x-vertex">
+	attribute vec3	a_VertPos;
+	attribute vec2	a_VertUV;
+	attribute vec3	a_VertNormal;
+
+	uniform mat4	u_ProjMatrix;
+	uniform mat4	u_WorldMatrix;
+	uniform mat3	u_NormalMatrix;
+	uniform vec3	u_AmbientCol;
+	uniform vec3	u_LightingDir;
+	uniform vec3	u_LightingCol;
+	uniform bool	u_UseLighting;
+
+	varying vec3	v_LightWeighting;
+	varying vec2	v_UV;
+
+	void main(void)
+	{
+		gl_Position = u_ProjMatrix * u_WorldMatrix * vec4(a_VertPos, 1.0);
+		v_UV = a_VertUV;
+		
+		if (u_UseLighting)
+		{
+			vec3 transformed_normal = u_NormalMatrix * a_VertNormal;
+			float light_weighting = max(dot(transformed_normal, u_LightingDir), 0.0);
+			v_LightWeighting = u_AmbientCol + u_LightingCol * light_weighting;
+		}
+		else
+			v_LightWeighting = vec3(1.0, 1.0, 1.0);
+	}
+</script>
+
+<!-- Lit mesh fragment shader -->
+<script id="lit-mesh-fs" type="x-shader/x-fragment">
+	precision mediump float;
+	varying vec3 v_LightWeighting;
+	varying vec2 v_UV;
+	uniform sampler2D u_Sampler;
+	uniform float u_Alpha;
+
+	void main(void)
+	{
+		vec4 texture_col = texture2D(u_Sampler, v_UV);
+		gl_FragColor = vec4(texture_col.rgb * v_LightWeighting, texture_col.a * u_Alpha);
+	}
+</script>
+
+<!-- Basic pos-UV shaders -->
+<script id="tex-vs" type="x-shader/x-vertex">
+	attribute vec3 a_VertPos;
 	attribute vec2 a_VertUV;
 	
 	uniform mat4 u_ProjMatrix;
@@ -23,43 +72,10 @@
 	{
 		gl_Position = u_ProjMatrix * u_WorldMatrix * vec4(a_VertPos, 1.0);
 		v_UV = a_VertUV;
-	}*/
-
-attribute vec3	a_VertPos;
-attribute vec2	a_VertUV;
-attribute vec3	a_VertNormal;
-
-uniform mat4	u_ProjMatrix;
-uniform mat4	u_WorldMatrix;
-uniform mat3	u_NormalMatrix;
-uniform vec3	u_AmbientCol;
-uniform vec3	u_LightingDir;
-uniform vec3	u_LightingCol;
-uniform bool	u_UseLighting;
-
-varying vec3	v_LightWeighting;
-varying vec2	v_UV;
-
-void main(void)
-{
-	gl_Position = u_ProjMatrix * u_WorldMatrix * vec4(a_VertPos, 1.0);
-	v_UV = a_VertUV;
-	
-	if (u_UseLighting)
-	{
-		vec3 transformed_normal = u_NormalMatrix * a_VertNormal;
-		float light_weighting = max(dot(transformed_normal, u_LightingDir), 0.0);
-		v_LightWeighting = u_AmbientCol + u_LightingCol * light_weighting;
 	}
-	else
-		v_LightWeighting = vec3(1.0, 1.0, 1.0);
-}
-
 </script>
-
-<!-- Fragment shader -->
-<script id="fragment-shader" type="x-shader/x-fragment">
-	/*precision mediump float;
+<script id="tex-fs" type="x-shader/x-fragment">
+	precision mediump float;
 	
 	uniform sampler2D u_Sampler;
 	uniform float u_Alpha;
@@ -70,20 +86,7 @@ void main(void)
 	{
 		vec4 texture_col = texture2D(u_Sampler, v_UV);
 		gl_FragColor = vec4(texture_col.rgb, texture_col.a * u_Alpha);
-	}*/
-	
-precision mediump float;
-varying vec3 v_LightWeighting;
-varying vec2 v_UV;
-uniform sampler2D u_Sampler;
-uniform float u_Alpha;
-
-void main(void)
-{
-	vec4 texture_col = texture2D(u_Sampler, v_UV);
-	gl_FragColor = vec4(texture_col.rgb * v_LightWeighting, texture_col.a * u_Alpha);
-}
-	
+	}
 </script>
 
 <!-- CSS -->
