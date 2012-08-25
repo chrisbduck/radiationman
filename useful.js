@@ -93,26 +93,6 @@ function getShader(id)
 }
 
 //------------------------------------------------------------------------------
-function buildShaderProg(vertex_shader_name, fragment_shader_name)
-{
-	var vertex_shader = getShader(vertex_shader_name);
-	var fragment_shader = getShader(fragment_shader_name);
-	
-	var shader_prog = gl.createProgram();
-	gl.attachShader(shader_prog, vertex_shader);
-	gl.attachShader(shader_prog, fragment_shader);
-	gl.linkProgram(shader_prog);
-	
-	if (!gl.getProgramParameter(shader_prog, gl.LINK_STATUS))
-	{
-		alert("Failed to initialise shaders");
-		return null;
-	}
-	
-	return shader_prog;
-}
-
-//------------------------------------------------------------------------------
 
 function Texture(file_name)
 {
@@ -129,7 +109,7 @@ function Texture(file_name)
 Texture.prototype.init = function()
 {
 	gl.bindTexture(gl.TEXTURE_2D, this.gltexture);
-	//glpixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);

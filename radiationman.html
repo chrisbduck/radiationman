@@ -89,6 +89,58 @@
 	}
 </script>
 
+<!-- Point sprite shaders -->
+<script id="point-vs" type="x-shader/x-vertex">
+	attribute vec3 a_PointPos;
+	uniform float u_PointSize;
+	uniform mat4 u_ProjMatrix;
+	uniform mat4 u_WorldMatrix;
+	
+	void main(void)
+	{
+		gl_Position = u_ProjMatrix * u_WorldMatrix * vec4(a_PointPos, 1.0);
+		gl_PointSize = u_PointSize;
+	}
+</script>
+<script id="point-fs" type="x-shader/x-fragment">
+	precision mediump float;
+	uniform sampler2D u_Sampler;
+	
+	void main(void)
+	{
+		gl_FragColor = vec4(1.0, 0.5, 0.5, 1.0);
+	}
+</script>
+
+<!-- Test shaders -->
+<script id="test-vs" type="x-shader/x-vertex">
+	attribute vec3	a_VertPos;
+	attribute vec2	a_VertUV;
+
+	uniform mat4	u_ProjMatrix;
+	uniform mat4	u_WorldMatrix;
+
+	varying vec2	v_UV;
+
+	void main(void)
+	{
+		gl_Position = u_ProjMatrix * u_WorldMatrix * vec4(a_VertPos, 1.0);
+		v_UV = a_VertUV;
+	}
+</script>
+<script id="test-fs" type="x-shader/x-fragment">
+	precision mediump float;
+	varying vec2 v_UV;
+	uniform sampler2D u_Sampler;
+	uniform float u_Alpha;
+
+	void main(void)
+	{
+		vec4 texture_col = texture2D(u_Sampler, v_UV);
+		gl_FragColor = vec4(texture_col.rgb, texture_col.a * u_Alpha);
+	}
+</script>
+
 <!-- CSS -->
 <style type="text/css">
 body	{ background-color: black; }

@@ -6,12 +6,18 @@
 var gl;
 var g_LastUpdateTimeSec = null;
 var g_LitMeshProg;
+var g_SpriteProg;
+var g_TestProg;
 var g_Texture;
 var g_PressedKeys = {};
 var g_Cube;
 var g_Pyramid;
 var g_ProjMatrix;
+var g_Sprite;
+var g_Test;
 
+//------------------------------------------------------------------------------
+// Mesh
 //------------------------------------------------------------------------------
 function Mesh(positions, indices, colours, uvs, normals, primitive_type, translation)
 {
@@ -24,7 +30,7 @@ function Mesh(positions, indices, colours, uvs, normals, primitive_type, transla
 	this.m_RotationDeg = [0, 0];
 	this.m_RotationDegPerSec = [0, 0];
 	this.m_RotationAxis = [null, null];
-	this.m_Program = g_LitMeshProg;
+	this.m_ShaderProg = g_LitMeshProg;
 }
 
 //------------------------------------------------------------------------------
@@ -57,7 +63,7 @@ Mesh.prototype.update = function(time_diff_sec)
 //------------------------------------------------------------------------------
 Mesh.prototype.draw = function()
 {
-	prog = this.m_Program;
+	prog = this.m_ShaderProg;
 	gl.useProgram(prog);
 	
 	// Model/view matrix
@@ -81,18 +87,21 @@ Mesh.prototype.draw = function()
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
 	gl.vertexAttribPointer(prog.a_VertPos, this.m_Positions.item_size, gl.FLOAT,
 						   false, 0, 0);
+	gl.enableVertexAttribArray(prog.a_VertPos);
 	
 	if (this.m_UVs !== null)
 	{
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
 		gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT,
 							   false, 0, 0);
+		gl.enableVertexAttribArray(prog.a_VertUV);
 		
 		g_Texture.use(prog);
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Normals);
 		gl.vertexAttribPointer(prog.a_VertNormal, this.m_Normals.item_size,
 							   gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(prog.a_VertNormal);
 		
 		gl.uniform1i(prog.u_UseLighting, 1);
 		
@@ -119,6 +128,10 @@ Mesh.prototype.draw = function()
 	}
 	else
 		gl.drawArrays(this.m_PrimitiveType, 0, this.m_Positions.num_items);
+	
+	gl.disableVertexAttribArray(prog.a_VertPos);
+	gl.disableVertexAttribArray(prog.a_VertUV);
+	gl.disableVertexAttribArray(prog.a_VertNormal);
 };
 
 //------------------------------------------------------------------------------
@@ -130,6 +143,18 @@ function initShaders()
 								   "u_Sampler",
 								   "u_AmbientCol", "u_LightingDir", "u_LightingCol", "u_UseLighting",
 								   "u_Alpha"]);
+	
+	g_SpriteProg = getShaderProg("point-vs", "point-fs",
+								 ["a_PointPos",
+								  "u_ProjMatrix", "u_WorldMatrix",
+								  "u_Sampler",
+								  "u_PointSize", "u_Alpha"]);
+	
+	g_TestProg = getShaderProg("test-vs", "test-fs",
+							   ["a_VertPos", "a_VertUV",
+							    "u_ProjMatrix", "u_WorldMatrix",
+							    "u_Sampler",
+							    "u_Alpha"]);
 }
 
 //------------------------------------------------------------------------------
@@ -167,10 +192,7 @@ function getShaderProg(vertex_shader_name, fragment_shader_name, properties)
 		if (prop[1] == '_')			// a_, u_
 		{
 			if (prop[0] == 'a')
-			{
 				shader_prog[prop] = gl.getAttribLocation(shader_prog, prop);
-				gl.enableVertexAttribArray(shader_prog[prop]);
-			}
 			else if (prop[0] == 'u')
 				shader_prog[prop] = gl.getUniformLocation(shader_prog, prop);
 		}
@@ -189,8 +211,8 @@ function initTextures()
 function initScene()
 {
 	initShaders();
-	initObjects();
 	initTextures();
+	initObjects();
 	g_ProjMatrix = getProjectionMatrix();
 }
 
@@ -215,7 +237,9 @@ function updateObjects(time_diff_sec)
 function renderScene()
 {
 	g_Pyramid.draw();
-	g_Cube.draw();
+	//g_Cube.draw();
+	//g_Sprite.draw();
+	g_Test.draw();
 }
 
 //------------------------------------------------------------------------------
