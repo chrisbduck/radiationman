@@ -3,6 +3,7 @@
 //
 
 var g_TestTexture;
+var g_CollectableTexture;
 
 //------------------------------------------------------------------------------
 function buildPyramid()
@@ -256,6 +257,9 @@ function buildCube()
 	cube.setTranslation([1.5, 0.0, -7.0]);
 	cube.setRotation(0, [1, 0, 0], 75.0);
 	cube.setRotation(1, [0, 1, 0], 110.0);
+	cube.setTexture(g_CollectableTexture);
+	cube.setLighting(false);
+	cube.setTranslucent(true);
 	return cube;
 }
 
@@ -265,6 +269,7 @@ function initObjects()
 	g_TestTexture = new Texture('sports-image.jpg');
 	var bg_texture = new Texture('data/sort-of-cloudy.jpg');
 	var spaceman_texture = new Texture('spaceman.png');
+	g_CollectableTexture = new Texture('data/collectable.jpg');
 	
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();

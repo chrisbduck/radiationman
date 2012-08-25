@@ -27,14 +27,17 @@ function Mesh(positions, indices, colours, uvs, normals, primitive_type, transla
 	this.m_RotationDeg = [0, 0];
 	this.m_RotationDegPerSec = [0, 0];
 	this.m_RotationAxis = [null, null];
+	this.m_Lighting = true;
+	this.m_Translucent = false;
+	this.m_Texture = g_TestTexture;
 	this.m_ShaderProg = g_LitMeshProg;
 }
 
 //------------------------------------------------------------------------------
-Mesh.prototype.setTranslation = function(translation)
-{
-	this.m_Translation = translation;
-};
+Mesh.prototype.setTranslation = function(translation) { this.m_Translation = translation; };
+Mesh.prototype.setTexture = function(texture) { this.m_Texture = texture; };
+Mesh.prototype.setLighting = function(active) { this.m_Lighting = active; };
+Mesh.prototype.setTranslucent = function(translucent) { this.m_Translucent = translucent; };
 
 //------------------------------------------------------------------------------
 Mesh.prototype.setRotation = function(index, axis, deg_per_sec)
@@ -93,16 +96,16 @@ Mesh.prototype.draw = function()
 							   false, 0, 0);
 		gl.enableVertexAttribArray(prog.a_VertUV);
 		
-		g_TestTexture.use(prog);
+		this.m_Texture.use(prog);
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Normals);
 		gl.vertexAttribPointer(prog.a_VertNormal, this.m_Normals.item_size,
 							   gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(prog.a_VertNormal);
 		
-		gl.uniform1i(prog.u_UseLighting, 1);
+		gl.uniform1i(prog.u_UseLighting, this.m_Lighting);
 		
-		//if (use_lighting)
+		if (this.m_Lighting)
 		{
 			gl.uniform3f(prog.u_AmbientCol, 0.2, 0.2, 0.2);
 			var lighting_dir = vec3.create([-1.0, 1.0, 0.0]);
@@ -111,10 +114,18 @@ Mesh.prototype.draw = function()
 			gl.uniform3f(prog.u_LightingCol, 0.8, 0.8, 0.8);
 		}
 		
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		gl.uniform1f(prog.u_Alpha, 0.7);
-		gl.disable(gl.DEPTH_TEST);
+		if (this.m_Translucent)
+		{
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+			gl.uniform1f(prog.u_Alpha, 0.7);
+			gl.disable(gl.DEPTH_TEST);
+		}
+		else
+		{
+			gl.disable(gl.BLEND);
+			gl.enable(gl.DEPTH_TEST);
+		}
 	}
 	
 	if (this.m_Indices !== null)
