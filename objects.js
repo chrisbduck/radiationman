@@ -264,12 +264,14 @@ function initObjects()
 {
 	g_TestTexture = new Texture('sports-image.jpg');
 	var bg_texture = new Texture('data/sort-of-cloudy.png');
+	var spaceman_texture = new Texture('spaceman.png');
 	
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();
 	
-	addSprite(bg_texture, [100, 0]);
+	addSprite(bg_texture, [0, 0]);
 	addSprite(g_TestTexture, [0, 0]);
+	addSprite(spaceman_texture, [256, 256]);
 }
 
 //------------------------------------------------------------------------------
@@ -337,16 +339,23 @@ Sprite.prototype.draw = function()
 	
 	// Sprite transformation matrix
 	
-	// Untransformed: (-1, -1) to (1, 1) - entire screen dimensions
-	// Desired transformed: (x, y) to (x + sprite width, x + sprite height)
+	// Without transformation, the vertices match the coordinates of the corners of the viewport
+	// - (-1, -1) to (1, 1).
+	// Apply a scaling factor of (sprite width / viewport width, sprite height / viewport height)
+	// to get the sprite to the right size.
 	
 	var world_matrix = mat4.create();
 	mat4.identity(world_matrix);
 	
-	var xoff = this.m_Position[0] / gl.m_ViewportWidth - 0.5;
-	var yoff = -(this.m_Position[1] / gl.m_ViewportHeight - 0.5);	// flip so y=0 is at the top
+	var x = this.m_Position[0];
+	var y = this.m_Position[1];
+	var width = this.m_Width;
+	var height = this.m_Height;
+	var xoff = -1 + (width + 2 * x) / gl.m_ViewportWidth;
+	var yoff =  1 - (height + 2 * y) / gl.m_ViewportHeight;		// flip y so 0 is at the top
+	
 	mat4.translate(world_matrix, [xoff, yoff, 0]);
-	mat4.scale(world_matrix, [this.m_Width / gl.m_ViewportWidth, this.m_Height / gl.m_ViewportHeight, 1]);
+	mat4.scale(world_matrix, [width / gl.m_ViewportWidth, height / gl.m_ViewportHeight, 1]);
 	
 	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, world_matrix);
 	
@@ -365,18 +374,9 @@ Sprite.prototype.draw = function()
 	
 	// Colour
 	gl.uniform4fv(prog.u_Col, this.m_Colour);
-	if (this.m_Colour[3] >= 1)
-	{
-		gl.disable(gl.BLEND);
-		gl.enable(gl.DEPTH_TEST);
-		gl.depthFunc(gl.LEQUAL);		// most sprites are on the same plane, so overwrite
-	}
-	else
-	{
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		gl.disable(gl.DEPTH_TEST);
-	}
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+	gl.disable(gl.DEPTH_TEST);
 	
 	// Draw
 	gl.drawArrays(gl.TRIANGLE_FAN, 0, this.m_VertPositions.num_items);
