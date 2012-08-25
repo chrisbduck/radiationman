@@ -137,11 +137,11 @@ Texture.prototype.init = function()
 }
 
 //------------------------------------------------------------------------------
-Texture.prototype.use = function()
+Texture.prototype.use = function(shader_prog)
 {
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, this.gltexture);
-	gl.uniform1i(g_ShaderProg.u_Sampler, 0);
+	gl.uniform1i(shader_prog.u_Sampler, 0);
 }
 
 //------------------------------------------------------------------------------
