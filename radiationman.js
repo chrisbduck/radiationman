@@ -195,8 +195,18 @@ function initScene()
 }
 
 //------------------------------------------------------------------------------
+var KEY_LEFT = 37;
+var KEY_RIGHT = 39;
+var KEY_UP = 38;
+var KEY_DOWN = 40;
+
 function updateObjects(time_diff_sec)
 {
+	if (g_PressedKeys[KEY_LEFT])
+		time_diff_sec *= 0.5;
+	else if (g_PressedKeys[KEY_RIGHT])
+		time_diff_sec *= 2.0;
+	
 	g_Pyramid.update(time_diff_sec);
 	g_Cube.update(time_diff_sec);
 }
