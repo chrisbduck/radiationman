@@ -325,21 +325,6 @@ function buildTest()
 	];
 	position_buf = createStaticFloatBuffer(positions, 3, 4);
 	
-	// Indices
-	var indices = [
-		0, 1, 2, 0, 2, 3,
-	];
-	var index_buf = createStaticUint16Buffer(indices, 1, 6);
-	
-	// Colours
-	colours = [
-		0.5, 0.5, 0.0, 1.0,
-		0.5, 0.5, 0.5, 1.0,
-		0.5, 0.0, 0.5, 1.0,
-		0.0, 0.5, 0.5, 1.0,
-	];
-	colour_buf = createStaticFloatBuffer(colours, 4, 4);
-	
 	// UVs
 	uvs = [
 		0.0, 0.0,
@@ -349,20 +334,20 @@ function buildTest()
 	];
 	uv_buf = createStaticFloatBuffer(uvs, 2, 4);
 	
-	var test_obj = new Test(position_buf, index_buf, colour_buf, uv_buf, gl.TRIANGLES);
+	var test_obj = new Test(position_buf, uv_buf, gl.TRIANGLE_FAN);
 	test_obj.setTranslation([1.5, 0.0, -7.0]);
+	test_obj.setColour([1.0, 1.0, 1.0, 1.0]);
 	return test_obj;
 }
 
 //------------------------------------------------------------------------------
-function Test(positions, indices, colours, uvs, primitive_type, translation)
+function Test(positions, uvs, primitive_type, translation)
 {
 	this.m_Positions = positions;
-	this.m_Indices = indices;
-	this.m_Colours = colours;
 	this.m_UVs = uvs;
 	this.m_PrimitiveType = primitive_type;
 	this.m_ShaderProg = g_TestProg;
+	this.m_Colour = new Float32Array(4);
 }
 
 //------------------------------------------------------------------------------
@@ -372,48 +357,59 @@ Test.prototype.setTranslation = function(translation)
 };
 
 //------------------------------------------------------------------------------
+Test.prototype.setColour = function(colour)
+{
+	for (index in colour)
+		this.m_Colour[index] = colour[index];
+}
+
+//------------------------------------------------------------------------------
 Test.prototype.draw = function()
 {
+	// Shader prog
 	prog = this.m_ShaderProg;
 	gl.useProgram(prog);
 	
-	// Model/view matrix
+	// Matrices
 	var model_view_matrix = mat4.create();
 	mat4.identity(model_view_matrix);
 	mat4.translate(model_view_matrix, this.m_Translation);
-	
 	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, g_ProjMatrix);
 	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, model_view_matrix);
 	
+	// Positions
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
 	gl.vertexAttribPointer(prog.a_VertPos, this.m_Positions.item_size, gl.FLOAT,
 						   false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertPos);
 	
-	if (this.m_UVs !== null)
+	// UVs
+	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
+	gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT,
+							false, 0, 0);
+	gl.enableVertexAttribArray(prog.a_VertUV);
+	
+	// Texture
+	g_Texture.use(prog);
+	
+	// Colour
+	gl.uniform4fv(prog.u_Col, this.m_Colour);
+	if (this.m_Colour[3] >= 1)
 	{
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
-		gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT,
-							   false, 0, 0);
-		gl.enableVertexAttribArray(prog.a_VertUV);
-		
-		g_Texture.use(prog);
-		
+		gl.disable(gl.BLEND);
+		gl.enable(gl.DEPTH_TEST);
+	}
+	else
+	{
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		gl.uniform1f(prog.u_Alpha, 0.7);
 		gl.disable(gl.DEPTH_TEST);
 	}
 	
-	if (this.m_Indices !== null)
-	{
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_Indices);
-		gl.drawElements(this.m_PrimitiveType, this.m_Indices.num_items,
-						gl.UNSIGNED_SHORT, 0);
-	}
-	else
-		gl.drawArrays(this.m_PrimitiveType, 0, this.m_Positions.num_items);
+	// Draw
+	gl.drawArrays(this.m_PrimitiveType, 0, this.m_Positions.num_items);
 	
+	// Clean up
 	gl.disableVertexAttribArray(prog.a_VertPos);
 	gl.disableVertexAttribArray(prog.a_VertUV);
 };

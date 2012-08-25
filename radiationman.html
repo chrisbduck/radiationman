@@ -132,12 +132,12 @@
 	precision mediump float;
 	varying vec2 v_UV;
 	uniform sampler2D u_Sampler;
-	uniform float u_Alpha;
+	uniform vec4 u_Col;
 
 	void main(void)
 	{
 		vec4 texture_col = texture2D(u_Sampler, v_UV);
-		gl_FragColor = vec4(texture_col.rgb, texture_col.a * u_Alpha);
+		gl_FragColor = texture_col * u_Col;
 	}
 </script>
 

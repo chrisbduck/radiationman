@@ -154,7 +154,7 @@ function initShaders()
 							   ["a_VertPos", "a_VertUV",
 							    "u_ProjMatrix", "u_WorldMatrix",
 							    "u_Sampler",
-							    "u_Alpha"]);
+							    "u_Col"]);
 }
 
 //------------------------------------------------------------------------------
