@@ -263,7 +263,7 @@ function buildCube()
 function initObjects()
 {
 	g_TestTexture = new Texture('sports-image.jpg');
-	var bg_texture = new Texture('data/sort-of-cloudy.png');
+	var bg_texture = new Texture('data/sort-of-cloudy.jpg');
 	var spaceman_texture = new Texture('spaceman.png');
 	
 	g_Pyramid = buildPyramid();
