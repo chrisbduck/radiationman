@@ -328,27 +328,20 @@ Sprite.prototype.draw = function()
 	prog = this.m_ShaderProg;
 	gl.useProgram(prog);
 	
-	// Matrices
-	var model_view_matrix = mat4.create();
-	mat4.identity(model_view_matrix);
-	//mat4.translate(model_view_matrix, this.m_Translation);
-	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, model_view_matrix);//g_ProjMatrix);
+	// Sprite transformation matrix
 	
 	// Untransformed: (-1, -1) to (1, 1) - entire screen dimensions
 	// Desired transformed: (x, y) to (x + sprite width, x + sprite height)
 	
-	var test_matrix = mat4.create();
-	mat4.identity(test_matrix);
+	var world_matrix = mat4.create();
+	mat4.identity(world_matrix);
 	
-	mat4.translate(test_matrix, [this.m_Position[0] / gl.m_ViewportWidth - 0.5,
-				                 this.m_Position[1] / gl.m_ViewportHeight - 0.5, 0]);
+	var xoff = this.m_Position[0] / gl.m_ViewportWidth - 0.5;
+	var yoff = -(this.m_Position[1] / gl.m_ViewportHeight - 0.5);	// flip so y=0 is at the top
+	mat4.translate(world_matrix, [xoff, yoff, 0]);
+	mat4.scale(world_matrix, [this.m_Width / gl.m_ViewportWidth, this.m_Height / gl.m_ViewportHeight, 1]);
 	
-	mat4.scale(test_matrix, [this.m_Width / gl.m_ViewportWidth, this.m_Height / gl.m_ViewportHeight, 1]);
-	
-	var xoff = (this.m_Position[0] - (gl.m_ViewportWidth / 2.0)) / gl.m_ViewportWidth;
-	var yoff = (this.m_Position[1] - (gl.m_ViewportHeight / 2.0)) / gl.m_ViewportHeight;
-	
-	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, test_matrix);
+	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, world_matrix);
 	
 	// Positions
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);

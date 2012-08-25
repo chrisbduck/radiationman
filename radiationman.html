@@ -94,14 +94,13 @@
 	attribute vec3	a_VertPos;
 	attribute vec2	a_VertUV;
 
-	uniform mat4	u_ProjMatrix;
 	uniform mat4	u_WorldMatrix;
 
 	varying vec2	v_UV;
 
 	void main(void)
 	{
-		gl_Position = u_ProjMatrix * u_WorldMatrix * vec4(a_VertPos, 1.0);
+		gl_Position = u_WorldMatrix * vec4(a_VertPos, 1.0);
 		v_UV = a_VertUV;
 	}
 </script>

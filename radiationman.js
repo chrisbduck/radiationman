@@ -144,9 +144,7 @@ function initShaders()
 	
 	g_SpriteProg = getShaderProg("test-vs", "test-fs",
 								 ["a_VertPos", "a_VertUV",
-								  "u_ProjMatrix", "u_WorldMatrix",
-								  "u_Sampler",
-								  "u_Col"]);
+								  "u_WorldMatrix", "u_Sampler", "u_Col"]);
 }
 
 //------------------------------------------------------------------------------
