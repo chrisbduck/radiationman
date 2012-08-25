@@ -2,6 +2,8 @@
 // Object initialisation
 //
 
+var g_TestTexture;
+
 //------------------------------------------------------------------------------
 function buildPyramid()
 {
@@ -260,22 +262,24 @@ function buildCube()
 //------------------------------------------------------------------------------
 function initObjects()
 {
+	g_TestTexture = new Texture('sports-image.jpg');
+	var bg_texture = new Texture('data/sort-of-cloudy.png');
+	
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();
-	g_Sprite = buildSprite();
+	
+	addSprite(bg_texture, [100, 0]);
+	addSprite(g_TestTexture, [0, 0]);
 }
 
 //------------------------------------------------------------------------------
-function buildSprite()
+function addSprite(texture, position)
 {
-	var test_obj = new Sprite(g_Texture);
-	//test_obj.setTranslation([1.5, 0.0, -7.0]);
-	test_obj.setColour([1.0, 1.0, 1.0, 1.0]);
-	return test_obj;
+	g_Sprites = g_Sprites.concat([new Sprite(texture, position)]);
 }
 
 //------------------------------------------------------------------------------
-function Sprite(texture)
+function Sprite(texture, position)
 {
 	if (!Sprite.prototype.m_Positions)
 	{
@@ -300,10 +304,13 @@ function Sprite(texture)
 		this.m_UVs = Sprite.prototype.m_UVs;
 	}
 	
+	if (position === null)
+		position = [0.0, 0.0];
+	
 	this.m_Texture = texture;
 	this.m_Width = texture.image.width;
 	this.m_Height = texture.image.height;
-	this.m_Position = new Float32Array([0.0, 0.0]);
+	this.m_Position = new Float32Array(position);
 	this.m_ShaderProg = g_SpriteProg;
 	this.m_Colour = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 }
@@ -354,7 +361,7 @@ Sprite.prototype.draw = function()
 	gl.enableVertexAttribArray(prog.a_VertUV);
 	
 	// Texture
-	g_Texture.use(prog);
+	this.m_Texture.use(prog);
 	
 	// Colour
 	gl.uniform4fv(prog.u_Col, this.m_Colour);
@@ -362,6 +369,7 @@ Sprite.prototype.draw = function()
 	{
 		gl.disable(gl.BLEND);
 		gl.enable(gl.DEPTH_TEST);
+		gl.depthFunc(gl.LEQUAL);		// most sprites are on the same plane, so overwrite
 	}
 	else
 	{

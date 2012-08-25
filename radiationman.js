@@ -7,12 +7,11 @@ var gl;
 var g_LastUpdateTimeSec = null;
 var g_LitMeshProg;
 var g_SpriteProg;
-var g_Texture;
 var g_PressedKeys = {};
 var g_Cube;
 var g_Pyramid;
 var g_ProjMatrix;
-var g_Sprite;
+var g_Sprites = [];
 
 //------------------------------------------------------------------------------
 // Mesh
@@ -94,7 +93,7 @@ Mesh.prototype.draw = function()
 							   false, 0, 0);
 		gl.enableVertexAttribArray(prog.a_VertUV);
 		
-		g_Texture.use(prog);
+		g_TestTexture.use(prog);
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Normals);
 		gl.vertexAttribPointer(prog.a_VertNormal, this.m_Normals.item_size,
@@ -192,16 +191,9 @@ function getShaderProg(vertex_shader_name, fragment_shader_name, properties)
 }
 
 //------------------------------------------------------------------------------
-function initTextures()
-{
-	g_Texture = new Texture('sports-image.jpg');
-}
-
-//------------------------------------------------------------------------------
 function initScene()
 {
 	initShaders();
-	initTextures();
 	initObjects();
 	g_ProjMatrix = getProjectionMatrix();
 }
@@ -226,7 +218,8 @@ function updateObjects(time_diff_sec)
 //------------------------------------------------------------------------------
 function renderScene()
 {
-	g_Sprite.draw();
+	for (index in g_Sprites)
+		g_Sprites[index].draw();
 	g_Pyramid.draw();
 	g_Cube.draw();
 }

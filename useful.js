@@ -5,6 +5,9 @@
 
 var g_PressedKeys = {};
 var g_LastUpdateTimeSec;
+var g_Textures = [];
+var g_NumLoadingTextures = 0;		// >0 when a texture is loading
+var g_TexInitialisedCount = 0;
 
 //------------------------------------------------------------------------------
 function initGL(canvas)
@@ -96,13 +99,31 @@ function getShader(id)
 
 function Texture(file_name)
 {
+	g_Textures = g_Textures.concat([this]);
+	g_NumLoadingTextures += 1;
+	
 	texture = this;
 	this.gltexture = gl.createTexture();
 	this.image = new Image();
 	this.image.gltexture = this.gltexture;
 	this.image.parent = this;
-	this.image.onload = function() { texture.init(); }
+	this.image.onload = handleLoadedTexture;
 	this.image.src = file_name;
+}
+
+//------------------------------------------------------------------------------
+function handleLoadedTexture()
+{
+	// Decrease the counter
+	g_NumLoadingTextures -= 1;
+	if (g_NumLoadingTextures == 0)
+	{
+		// All textures have loaded.  Initialise them
+		var init_up_to = g_Textures.length;
+		for (index = g_TexInitialisedCount; index < init_up_to; ++index)
+			g_Textures[index].init();
+		g_TexInitialisedCount = init_up_to;
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -138,6 +159,10 @@ function getProjectionMatrix(shader_uniform)
 function updateScene()
 {
 	requestAnimFrame(updateScene);
+	
+	// Don't do anything until all textures are loaded
+	if (g_NumLoadingTextures > 0)
+		return;
 	
 	// Update time
 	var time_now_sec = new Date().getTime() / 1000;
