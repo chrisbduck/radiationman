@@ -28,7 +28,7 @@ function Mesh(positions, indices, uvs, normals, primitive_type)
 	this.m_Translation = [0, 0];
 	this.m_RotationAxis = [null, null];
 	this.m_Lighting = true;
-	this.m_Translucent = false;
+	this.m_Alpha = 1.0;
 	this.m_Texture = g_TestTexture;
 	this.m_ShaderProg = g_LitMeshProg;
 }
@@ -37,7 +37,7 @@ function Mesh(positions, indices, uvs, normals, primitive_type)
 Mesh.prototype.setTranslation = function(translation) { this.m_Translation = translation; };
 Mesh.prototype.setTexture = function(texture) { this.m_Texture = texture; };
 Mesh.prototype.setLighting = function(active) { this.m_Lighting = active; };
-Mesh.prototype.setTranslucent = function(translucent) { this.m_Translucent = translucent; };
+Mesh.prototype.setAlpha = function(alpha) { this.m_Alpha = alpha; };
 
 //------------------------------------------------------------------------------
 Mesh.prototype.setRotation = function(index, axis, deg_per_sec)
@@ -114,11 +114,11 @@ Mesh.prototype.draw = function()
 			gl.uniform3f(prog.u_LightingCol, 0.8, 0.8, 0.8);
 		}
 		
-		if (this.m_Translucent)
+		if (this.m_Alpha < 1.0)
 		{
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-			gl.uniform1f(prog.u_Alpha, 0.7);
+			gl.uniform1f(prog.u_Alpha, this.m_Alpha);
 			gl.disable(gl.DEPTH_TEST);
 		}
 		else
