@@ -3,12 +3,8 @@
 //
 
 //------------------------------------------------------------------------------
-function initObjects()
+function buildPyramid()
 {
-	//
-	// Pyramid
-	//
-	
 	// Positions
 	var positions = [
 		// Front face
@@ -93,15 +89,16 @@ function initObjects()
 	];
 	var normal_buf = createStaticFloatBuffer(normals, 3, 12);
 	
-	g_Pyramid = new Mesh(position_buf, null, colour_buf, uv_buf, normal_buf, gl.TRIANGLES);
-	g_Pyramid.setTranslation([-1.5, 0.0, -7.0]);
-	g_Pyramid.setRotation(0, [0, 1, 0], 90.0);
-	g_Pyramid.setRotation(1, [0, 0, 1], 60.0);
-	
-	//
-	// Cube
-	//
-	
+	var pyramid = new Mesh(position_buf, null, colour_buf, uv_buf, normal_buf, gl.TRIANGLES);
+	pyramid.setTranslation([-1.5, 0.0, -7.0]);
+	pyramid.setRotation(0, [0, 1, 0], 90.0);
+	pyramid.setRotation(1, [0, 0, 1], 60.0);
+	return pyramid;
+}
+
+//------------------------------------------------------------------------------
+function buildCube()
+{
 	// Positions
 	positions = [
 		// Front face
@@ -253,11 +250,19 @@ function initObjects()
 	];
 	normal_buf = createStaticFloatBuffer(normals, 3, 24);
 	
-	g_Cube = new Mesh(position_buf, index_buf, colour_buf, uv_buf, normal_buf,
-					  gl.TRIANGLES);
-	g_Cube.setTranslation([1.5, 0.0, -7.0]);
-	g_Cube.setRotation(0, [1, 0, 0], 75.0);
-	g_Cube.setRotation(1, [0, 1, 0], 110.0);
+	var cube = new Mesh(position_buf, index_buf, colour_buf, uv_buf, normal_buf,
+						gl.TRIANGLES);
+	cube.setTranslation([1.5, 0.0, -7.0]);
+	cube.setRotation(0, [1, 0, 0], 75.0);
+	cube.setRotation(1, [0, 1, 0], 110.0);
+	return cube;
+}
+
+//------------------------------------------------------------------------------
+function initObjects()
+{
+	g_Pyramid = buildPyramid();
+	g_Cube = buildCube();
 }
 
 //------------------------------------------------------------------------------
