@@ -20,8 +20,8 @@ function initGL(canvas)
 		}
 		if (gl === null)
 			return false;
-		gl.viewport_width = canvas.width;
-		gl.viewport_height = canvas.height;
+		gl.m_ViewportWidth = canvas.width;
+		gl.m_ViewportHeight = canvas.height;
 	}
 	catch (exc)
 	{
@@ -129,7 +129,7 @@ Texture.prototype.use = function(shader_prog)
 function getProjectionMatrix(shader_uniform)
 {
 	var proj_matrix = mat4.create();
-	mat4.perspective(45, gl.viewport_width / gl.viewport_height, 0.1, 100.0, proj_matrix);
+	mat4.perspective(45, gl.m_ViewportWidth / gl.m_ViewportHeight, 0.1, 100.0, proj_matrix);
 	gl.uniformMatrix4fv(shader_uniform, false, proj_matrix);
 	return proj_matrix;
 }
@@ -150,7 +150,7 @@ function updateScene()
 	g_LastUpdateTimeSec = time_now_sec;
 	
 	// Set up and render the scene
-	gl.viewport(0, 0, gl.viewport_width, gl.viewport_height);
+	gl.viewport(0, 0, gl.m_ViewportWidth, gl.m_ViewportHeight);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	renderScene();
 }

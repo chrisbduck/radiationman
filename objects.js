@@ -250,8 +250,7 @@ function buildCube()
 	];
 	normal_buf = createStaticFloatBuffer(normals, 3, 24);
 	
-	var cube = new Mesh(position_buf, index_buf, colour_buf, uv_buf, normal_buf,
-						gl.TRIANGLES);
+	var cube = new Mesh(position_buf, index_buf, colour_buf, uv_buf, normal_buf, gl.TRIANGLES);
 	cube.setTranslation([1.5, 0.0, -7.0]);
 	cube.setRotation(0, [1, 0, 0], 75.0);
 	cube.setRotation(1, [0, 1, 0], 110.0);
@@ -269,14 +268,14 @@ function initObjects()
 //------------------------------------------------------------------------------
 function buildSprite()
 {
-	var test_obj = new Sprite();
+	var test_obj = new Sprite(g_Texture);
 	//test_obj.setTranslation([1.5, 0.0, -7.0]);
 	test_obj.setColour([1.0, 1.0, 1.0, 1.0]);
 	return test_obj;
 }
 
 //------------------------------------------------------------------------------
-function Sprite()
+function Sprite(texture)
 {
 	if (!Sprite.prototype.m_Positions)
 	{
@@ -301,6 +300,10 @@ function Sprite()
 		this.m_UVs = Sprite.prototype.m_UVs;
 	}
 	
+	this.m_Texture = texture;
+	this.m_Width = texture.image.width;
+	this.m_Height = texture.image.height;
+	this.m_Position = new Float32Array([0.0, 0.0]);
 	this.m_ShaderProg = g_SpriteProg;
 	this.m_Colour = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 }
@@ -330,7 +333,22 @@ Sprite.prototype.draw = function()
 	mat4.identity(model_view_matrix);
 	//mat4.translate(model_view_matrix, this.m_Translation);
 	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, model_view_matrix);//g_ProjMatrix);
-	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, model_view_matrix);
+	
+	// Untransformed: (-1, -1) to (1, 1) - entire screen dimensions
+	// Desired transformed: (x, y) to (x + sprite width, x + sprite height)
+	
+	var test_matrix = mat4.create();
+	mat4.identity(test_matrix);
+	
+	mat4.translate(test_matrix, [this.m_Position[0] / gl.m_ViewportWidth - 0.5,
+				                 this.m_Position[1] / gl.m_ViewportHeight - 0.5, 0]);
+	
+	mat4.scale(test_matrix, [this.m_Width / gl.m_ViewportWidth, this.m_Height / gl.m_ViewportHeight, 1]);
+	
+	var xoff = (this.m_Position[0] - (gl.m_ViewportWidth / 2.0)) / gl.m_ViewportWidth;
+	var yoff = (this.m_Position[1] - (gl.m_ViewportHeight / 2.0)) / gl.m_ViewportHeight;
+	
+	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, test_matrix);
 	
 	// Positions
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
