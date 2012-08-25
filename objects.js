@@ -269,38 +269,40 @@ function initObjects()
 //------------------------------------------------------------------------------
 function buildSprite()
 {
-	// Positions
-	positions = [
-		-1.0, -1.0,  0.0,
-		 1.0, -1.0,  0.0,
-		 1.0,  1.0,  0.0,
-		-1.0,  1.0,  0.0,
-	];
-	position_buf = createStaticFloatBuffer(positions, 3, 4);
-	
-	// UVs
-	uvs = [
-		0.0, 0.0,
-		1.0, 0.0,
-		1.0, 1.0,
-		0.0, 1.0,
-	];
-	uv_buf = createStaticFloatBuffer(uvs, 2, 4);
-	
-	var test_obj = new Sprite(position_buf, uv_buf, gl.TRIANGLE_FAN);
-	test_obj.setTranslation([1.5, 0.0, -7.0]);
+	var test_obj = new Sprite();
+	//test_obj.setTranslation([1.5, 0.0, -7.0]);
 	test_obj.setColour([1.0, 1.0, 1.0, 1.0]);
 	return test_obj;
 }
 
 //------------------------------------------------------------------------------
-function Sprite(positions, uvs, primitive_type, translation)
+function Sprite()
 {
-	this.m_Positions = positions;
-	this.m_UVs = uvs;
-	this.m_PrimitiveType = primitive_type;
+	if (!Sprite.prototype.m_Positions)
+	{
+		// Positions
+		positions = [
+			-1.0, -1.0,  0.0,
+			 1.0, -1.0,  0.0,
+			 1.0,  1.0,  0.0,
+			-1.0,  1.0,  0.0,
+		];
+		Sprite.prototype.m_VertPositions = createStaticFloatBuffer(positions, 3, 4);
+		this.m_Positions = Sprite.prototype.m_VertPositions;
+		
+		// UVs
+		uvs = [
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+		];
+		Sprite.prototype.m_UVs = createStaticFloatBuffer(uvs, 2, 4);
+		this.m_UVs = Sprite.prototype.m_UVs;
+	}
+	
 	this.m_ShaderProg = g_SpriteProg;
-	this.m_Colour = new Float32Array(4);
+	this.m_Colour = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 }
 
 //------------------------------------------------------------------------------
@@ -332,14 +334,12 @@ Sprite.prototype.draw = function()
 	
 	// Positions
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
-	gl.vertexAttribPointer(prog.a_VertPos, this.m_Positions.item_size, gl.FLOAT,
-						   false, 0, 0);
+	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.item_size, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertPos);
 	
 	// UVs
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
-	gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT,
-							false, 0, 0);
+	gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertUV);
 	
 	// Texture
@@ -360,7 +360,7 @@ Sprite.prototype.draw = function()
 	}
 	
 	// Draw
-	gl.drawArrays(this.m_PrimitiveType, 0, this.m_Positions.num_items);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, this.m_VertPositions.num_items);
 	
 	// Clean up
 	gl.disableVertexAttribArray(prog.a_VertPos);
