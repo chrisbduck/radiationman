@@ -263,65 +263,18 @@ function initObjects()
 {
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();
-	g_Sprite = new Sprite(g_Texture, [0.0, 0.0, 0.0], g_SpriteProg);
-	g_Test = buildTest();
+	g_Sprite = buildSprite();
 }
 
 //------------------------------------------------------------------------------
-
-function Sprite(texture, translation, shader_prog)
-{
-	this.m_Texture = texture;
-	this.m_Translation = translation;
-	this.m_ShaderProg = shader_prog;
-	this.m_Positions = createStaticFloatBuffer([0.0, 0.0, 0.0], 3, 1);
-}
-
-//------------------------------------------------------------------------------
-Sprite.prototype.draw = function()
-{
-	// Programme
-	var prog = this.m_ShaderProg;
-	gl.useProgram(prog);
-	
-	// Matrices
-	var model_view_matrix = mat4.create();
-	mat4.identity(model_view_matrix);
-	mat4.translate(model_view_matrix, this.m_Translation);
-	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, g_ProjMatrix);
-	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, model_view_matrix);
-	
-	// Texture
-	this.m_Texture.use(prog);
-	
-	// Positions
-	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
-	gl.vertexAttribPointer(prog.a_PointPos, this.m_Positions.item_size, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(prog.a_PointPos);
-	
-	gl.uniform1f(prog.u_PointSize, 16.0);
-	
-	gl.disable(gl.BLEND);
-	gl.disable(gl.DEPTH_TEST);
-	gl.uniform1f(prog.u_Alpha, 1.0);
-	
-	//gl.enable(34370);	// magic point sprites number?
-	
-	// Draw
-	gl.drawArrays(gl.POINTS, 0, 1);
-	
-	gl.disableVertexAttribArray(prog.a_PointPos);
-}
-
-//------------------------------------------------------------------------------
-function buildTest()
+function buildSprite()
 {
 	// Positions
 	positions = [
-		-1.0, -1.0,  1.0,
-		 1.0, -1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		-1.0,  1.0,  1.0,
+		-1.0, -1.0,  0.0,
+		 1.0, -1.0,  0.0,
+		 1.0,  1.0,  0.0,
+		-1.0,  1.0,  0.0,
 	];
 	position_buf = createStaticFloatBuffer(positions, 3, 4);
 	
@@ -334,37 +287,37 @@ function buildTest()
 	];
 	uv_buf = createStaticFloatBuffer(uvs, 2, 4);
 	
-	var test_obj = new Test(position_buf, uv_buf, gl.TRIANGLE_FAN);
+	var test_obj = new Sprite(position_buf, uv_buf, gl.TRIANGLE_FAN);
 	test_obj.setTranslation([1.5, 0.0, -7.0]);
 	test_obj.setColour([1.0, 1.0, 1.0, 1.0]);
 	return test_obj;
 }
 
 //------------------------------------------------------------------------------
-function Test(positions, uvs, primitive_type, translation)
+function Sprite(positions, uvs, primitive_type, translation)
 {
 	this.m_Positions = positions;
 	this.m_UVs = uvs;
 	this.m_PrimitiveType = primitive_type;
-	this.m_ShaderProg = g_TestProg;
+	this.m_ShaderProg = g_SpriteProg;
 	this.m_Colour = new Float32Array(4);
 }
 
 //------------------------------------------------------------------------------
-Test.prototype.setTranslation = function(translation)
+Sprite.prototype.setTranslation = function(translation)
 {
 	this.m_Translation = translation;
 };
 
 //------------------------------------------------------------------------------
-Test.prototype.setColour = function(colour)
+Sprite.prototype.setColour = function(colour)
 {
 	for (index in colour)
 		this.m_Colour[index] = colour[index];
 }
 
 //------------------------------------------------------------------------------
-Test.prototype.draw = function()
+Sprite.prototype.draw = function()
 {
 	// Shader prog
 	prog = this.m_ShaderProg;
@@ -373,8 +326,8 @@ Test.prototype.draw = function()
 	// Matrices
 	var model_view_matrix = mat4.create();
 	mat4.identity(model_view_matrix);
-	mat4.translate(model_view_matrix, this.m_Translation);
-	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, g_ProjMatrix);
+	//mat4.translate(model_view_matrix, this.m_Translation);
+	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, model_view_matrix);//g_ProjMatrix);
 	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, model_view_matrix);
 	
 	// Positions

@@ -7,14 +7,12 @@ var gl;
 var g_LastUpdateTimeSec = null;
 var g_LitMeshProg;
 var g_SpriteProg;
-var g_TestProg;
 var g_Texture;
 var g_PressedKeys = {};
 var g_Cube;
 var g_Pyramid;
 var g_ProjMatrix;
 var g_Sprite;
-var g_Test;
 
 //------------------------------------------------------------------------------
 // Mesh
@@ -144,17 +142,11 @@ function initShaders()
 								   "u_AmbientCol", "u_LightingDir", "u_LightingCol", "u_UseLighting",
 								   "u_Alpha"]);
 	
-	g_SpriteProg = getShaderProg("point-vs", "point-fs",
-								 ["a_PointPos",
+	g_SpriteProg = getShaderProg("test-vs", "test-fs",
+								 ["a_VertPos", "a_VertUV",
 								  "u_ProjMatrix", "u_WorldMatrix",
 								  "u_Sampler",
-								  "u_PointSize", "u_Alpha"]);
-	
-	g_TestProg = getShaderProg("test-vs", "test-fs",
-							   ["a_VertPos", "a_VertUV",
-							    "u_ProjMatrix", "u_WorldMatrix",
-							    "u_Sampler",
-							    "u_Col"]);
+								  "u_Col"]);
 }
 
 //------------------------------------------------------------------------------
@@ -236,10 +228,9 @@ function updateObjects(time_diff_sec)
 //------------------------------------------------------------------------------
 function renderScene()
 {
+	g_Sprite.draw();
 	g_Pyramid.draw();
-	//g_Cube.draw();
-	//g_Sprite.draw();
-	g_Test.draw();
+	g_Cube.draw();
 }
 
 //------------------------------------------------------------------------------
