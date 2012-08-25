@@ -4,6 +4,7 @@
 //------------------------------------------------------------------------------
 
 var g_PressedKeys = {};
+var g_LastUpdateTimeSec;
 
 //------------------------------------------------------------------------------
 function initGL(canvas)
@@ -112,18 +113,22 @@ function buildShaderProg(vertex_shader_name, fragment_shader_name)
 }
 
 //------------------------------------------------------------------------------
+
 function Texture(file_name)
 {
-	this.texture = gl.createTexture();
+	texture = this;
+	this.gltexture = gl.createTexture();
 	this.image = new Image();
-	this.image.onload = this.init;
+	this.image.gltexture = this.gltexture;
+	this.image.parent = this;
+	this.image.onload = function() { texture.init(); }
 	this.image.src = file_name;
 }
 
 //------------------------------------------------------------------------------
 Texture.prototype.init = function()
 {
-	gl.bindTexture(gl.TEXTURE_2D, this.texture);
+	gl.bindTexture(gl.TEXTURE_2D, this.gltexture);
 	//glpixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -132,8 +137,16 @@ Texture.prototype.init = function()
 }
 
 //------------------------------------------------------------------------------
+Texture.prototype.use = function()
+{
+	gl.activeTexture(gl.TEXTURE0);
+	gl.bindTexture(gl.TEXTURE_2D, this.gltexture);
+	gl.uniform1i(g_ShaderProg.u_Sampler, 0);
+}
+
+//------------------------------------------------------------------------------
 // Sets up a default projection matrix, with 45 degrees FOV, and near&far planes 0.1 & 100
-function initProjectionMatrix(shader_uniform)
+function getProjectionMatrix(shader_uniform)
 {
 	var proj_matrix = mat4.create();
 	mat4.perspective(45, gl.viewport_width / gl.viewport_height, 0.1, 100.0, proj_matrix);
@@ -152,20 +165,14 @@ function updateScene()
 	{
 		var time_diff_sec = time_now_sec - g_LastUpdateTimeSec;
 		
-		// Updates go here
+		updateObjects(time_diff_sec);
 	}
 	g_LastUpdateTimeSec = time_now_sec;
 	
-	renderScene();
-}
-
-//------------------------------------------------------------------------------
-function renderScene()
-{
+	// Set up and render the scene
 	gl.viewport(0, 0, gl.viewport_width, gl.viewport_height);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	
-	// More stuff goes here
+	renderScene();
 }
 
 //------------------------------------------------------------------------------
@@ -193,7 +200,8 @@ function webGLStart()
 	document.onkeydown = handleKeyDown;
 	document.onkeyup = handleKeyUp;
 	
-	//updateScene();
+	initScene();
+	updateScene();
 }
 
 //------------------------------------------------------------------------------
