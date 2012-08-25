@@ -3,71 +3,55 @@
 //
 
 var g_TestTexture;
-var g_CollectableTexture;
+var g_LavaTexture;
 
 //------------------------------------------------------------------------------
 function buildPyramid()
 {
+	// -1.0, -0.5574, -0.4082		// A
+	//  1.0, -0.5574, -0.4082		// B
+	//  0.0,  1.1547, -0.4082		// C
+	//  0.0,  0.0,     1.2247		// D
+	
 	// Positions
 	var positions = [
 		// Front face
-		 0.0,  1.0,  0.0,
-		-1.0, -1.0,  1.0,
-		 1.0, -1.0,  1.0,
-		// Right face
-		 0.0,  1.0,  0.0,
-		 1.0, -1.0,  1.0,
-		 1.0, -1.0, -1.0,
-		// Back face
-		 0.0,  1.0,  0.0,
-		 1.0, -1.0, -1.0,
-		-1.0, -1.0, -1.0,
-		// Left face
-		 0.0,  1.0,  0.0,
-		-1.0, -1.0, -1.0,
-		-1.0, -1.0,  1.0
+	    0.0,  1.1547, -0.4082,		// C
+	   -1.0, -0.5574, -0.4082,		// A
+	    1.0, -0.5574, -0.4082,		// B
+		// Right-back face
+	    0.0,  1.1547, -0.4082,		// C
+	    1.0, -0.5574, -0.4082,		// B
+	    0.0,  0.0,     1.2247,		// D
+		// Left-back face
+	    0.0,  1.1547, -0.4082,		// C
+	    0.0,  0.0,     1.2247,		// D
+	   -1.0, -0.5574, -0.4082,		// A
+		// Bottom face
+	    1.0, -0.5574, -0.4082,		// B
+	   -1.0, -0.5574, -0.4082,		// A
+	    0.0,  0.0,     1.2247,		// D
 	];
 	var position_buf = createStaticFloatBuffer(positions, 3, 12);
-	
-	// Colours
-	var colours = [
-		// Front face
-		1.0, 0.0, 0.0, 1.0,
-		0.0, 1.0, 0.0, 1.0,
-		0.0, 0.0, 1.0, 1.0,
-		// Right face
-		1.0, 0.0, 0.0, 1.0,
-		0.0, 0.0, 1.0, 1.0,
-		0.0, 1.0, 0.0, 1.0,
-		// Back face
-		1.0, 0.0, 0.0, 1.0,
-		0.0, 1.0, 0.0, 1.0,
-		0.0, 0.0, 1.0, 1.0,
-		// Left face
-		1.0, 0.0, 0.0, 1.0,
-		0.0, 0.0, 1.0, 1.0,
-		0.0, 1.0, 0.0, 1.0
-	];
-	var colour_buf = createStaticFloatBuffer(colours, 4, 12);
 	
 	// UVs
 	var uvs = [
 		// Front face
-		0.5, 1.0,
-		0.0, 0.0,
-		1.0, 0.0,
+		1.0, 0.5,		// C
+		0.0, 0.0,		// A
+		0.5, 1.0,		// B
 		// Right face
-		1.0, 0.5,
-		0.0, 0.0,
-		0.0, 1.0,
+		1.0, 0.5,		// C
+		0.5, 1.0,		// B
+		1.0, 1.0,		// D1
 		// Back face
-		0.5, 0.0,
-		1.0, 1.0,
-		0.0, 1.0,
+		1.0, 0.5,		// C
+		1.0, 0.0,		// D2
+		0.0, 0.0,		// A
 		// Left face
-		0.0, 0.5,
-		1.0, 0.0,
-		1.0, 1.0,
+		0.5, 1.0,		// B
+		0.0, 0.0,		// A
+		0.0, 1.0,		// D3
 	];
 	var uv_buf = createStaticFloatBuffer(uvs, 2, 12);
 	
@@ -92,10 +76,13 @@ function buildPyramid()
 	];
 	var normal_buf = createStaticFloatBuffer(normals, 3, 12);
 	
-	var pyramid = new Mesh(position_buf, null, colour_buf, uv_buf, normal_buf, gl.TRIANGLES);
+	var pyramid = new Mesh(position_buf, null, uv_buf, normal_buf, gl.TRIANGLES);
 	pyramid.setTranslation([-1.5, 0.0, -7.0]);
 	pyramid.setRotation(0, [0, 1, 0], 90.0);
 	pyramid.setRotation(1, [0, 0, 1], 60.0);
+	pyramid.setTexture(g_WateryTexture);
+	pyramid.setLighting(false);
+	pyramid.setTranslucent(true);
 	return pyramid;
 }
 
@@ -147,41 +134,6 @@ function buildCube()
 		20, 21, 22,   20, 22, 23  // Left face
 	];
 	var index_buf = createStaticUint16Buffer(indices, 1, 36);
-	
-	// Colours
-	colours = [
-		// Front face
-		0.5, 0.5, 0.0, 1.0,
-		0.5, 0.5, 0.5, 1.0,
-		0.5, 0.0, 0.5, 1.0,
-		0.0, 0.5, 0.5, 1.0,
-		// Back face
-		1.0, 1.0, 0.0, 1.0,
-		0.0, 1.0, 1.0, 1.0,
-		1.0, 0.0, 1.0, 1.0,
-		1.0, 1.0, 1.0, 1.0,
-		// Top face
-		0.0, 1.0, 1.0, 1.0,
-		0.0, 0.5, 0.5, 1.0,
-		0.5, 0.0, 0.5, 1.0,
-		1.0, 0.0, 1.0, 1.0,
-		// Bottom face
-		1.0, 1.0, 0.0, 1.0,
-		1.0, 1.0, 1.0, 1.0,
-		0.5, 0.5, 0.5, 1.0,
-		0.5, 0.5, 0.0, 1.0,
-		// Right face
-		1.0, 1.0, 1.0, 1.0,
-		1.0, 0.0, 1.0, 1.0,
-		0.5, 0.0, 0.5, 1.0,
-		0.5, 0.5, 0.5, 1.0,
-		// Left face
-		1.0, 1.0, 0.0, 1.0,
-		0.5, 0.5, 0.0, 1.0,
-		0.0, 0.5, 0.5, 1.0,
-		0.0, 1.0, 1.0, 1.0,
-	];
-	colour_buf = createStaticFloatBuffer(colours, 4, 24);
 	
 	// UVs
 	uvs = [
@@ -253,11 +205,11 @@ function buildCube()
 	];
 	normal_buf = createStaticFloatBuffer(normals, 3, 24);
 	
-	var cube = new Mesh(position_buf, index_buf, colour_buf, uv_buf, normal_buf, gl.TRIANGLES);
+	var cube = new Mesh(position_buf, index_buf, uv_buf, normal_buf, gl.TRIANGLES);
 	cube.setTranslation([1.5, 0.0, -7.0]);
 	cube.setRotation(0, [1, 0, 0], 75.0);
 	cube.setRotation(1, [0, 1, 0], 110.0);
-	cube.setTexture(g_CollectableTexture);
+	cube.setTexture(g_LavaTexture);
 	cube.setLighting(false);
 	cube.setTranslucent(true);
 	return cube;
@@ -269,7 +221,8 @@ function initObjects()
 	g_TestTexture = new Texture('sports-image.jpg');
 	var bg_texture = new Texture('data/sort-of-cloudy.jpg');
 	var spaceman_texture = new Texture('spaceman.png');
-	g_CollectableTexture = new Texture('data/collectable.jpg');
+	g_LavaTexture = new Texture('data/collectable.jpg');
+	g_WateryTexture = new Texture('data/watery.jpg');
 	
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();

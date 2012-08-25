@@ -16,16 +16,16 @@ var g_Sprites = [];
 //------------------------------------------------------------------------------
 // Mesh
 //------------------------------------------------------------------------------
-function Mesh(positions, indices, colours, uvs, normals, primitive_type, translation)
+function Mesh(positions, indices, uvs, normals, primitive_type)
 {
 	this.m_Positions = positions;
 	this.m_Indices = indices;
-	this.m_Colours = colours;
 	this.m_UVs = uvs;
 	this.m_Normals = normals;
 	this.m_PrimitiveType = primitive_type;
 	this.m_RotationDeg = [0, 0];
 	this.m_RotationDegPerSec = [0, 0];
+	this.m_Translation = [0, 0];
 	this.m_RotationAxis = [null, null];
 	this.m_Lighting = true;
 	this.m_Translucent = false;
