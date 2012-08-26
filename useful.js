@@ -184,7 +184,7 @@ function updateScene()
 	{
 		var time_diff_sec = time_now_sec - g_LastUpdateTimeSec;
 		// Stop the sim from breaking when debugging :)
-		if (time_diff_sec >= 1)
+		if (time_diff_sec >= 0.1)
 			time_diff_sec = 0.01;
 		
 		updateObjects(time_diff_sec);

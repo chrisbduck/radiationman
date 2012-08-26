@@ -14,7 +14,7 @@ var g_Cube;
 var g_Pyramid;
 var g_ProjMatrix;
 var g_Sprites = [];
-var g_GravityPPSPS = 10;
+var g_GravityPPSPS = 150;
 
 //------------------------------------------------------------------------------
 // Mesh
@@ -235,11 +235,13 @@ function updateObjects(time_diff_sec)
 	
 	// Player input & update
 	var player_x_input = 0;
+	var player_jump_input = 0;
 	if (g_PressedKeys[KEY_LEFT])
 		player_x_input -= 1;
 	if (g_PressedKeys[KEY_RIGHT])
 		player_x_input += 1;
-	player_jump_input = 0;		// not yet
+	if (g_PressedKeys[KEY_UP])
+		player_jump_input = 1;
 	g_Player.update(time_diff_sec, player_x_input, player_jump_input);
 	
 	// Object update

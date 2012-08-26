@@ -392,6 +392,7 @@ function Player(x, y)
 	this.m_CollideRect = [22, 8, 42, 64];
 	this.m_Collided = [false, false, false, false];		// left, top, right, bottom
 	this.m_IsOnPlatform = false;
+	this.m_Jumping = false;
 }
 
 //------------------------------------------------------------------------------
@@ -402,7 +403,7 @@ Player.prototype.draw = function()
 };
 
 //------------------------------------------------------------------------------
-var JUMP_IMPULSE_PPS = 250;
+var JUMP_IMPULSE_PPS = 180;
 var DECELERATION_SCALE = 1.5;
 
 Player.prototype.update = function(time_diff_sec, x_input, jump_input)
@@ -427,10 +428,18 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	{
 		// Jumping - just modify the speed directly
 		if (jump_input > 0)
-			this.m_VelocityPPS[1] = JUMP_IMPULSE_PPS;
+		{
+			if (!this.m_Jumping)	// ignore held keys
+			{
+				this.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
+				this.m_Jumping = true;
+			}
+		}
 	}
 	else
 		this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
+	if (jump_input == 0)
+		this.m_Jumping = false;
 	
 	// 
 	// Velocity
