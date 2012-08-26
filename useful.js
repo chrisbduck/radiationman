@@ -180,7 +180,7 @@ function get3DPosFrom2D(desired_x, desired_y)
 {
 	// Scale the desired position into the projected buffer space
 	var scaled_x = -1.0 + desired_x * 2.0 / gl.m_ViewportWidth;
-	var scaled_y = -1.0 + desired_y * 2.0 / gl.m_ViewportHeight;
+	var scaled_y =  1.0 - desired_y * 2.0 / gl.m_ViewportHeight;	// flip y so 0 is at the top
 	var pos = vec3.create([scaled_x, scaled_y, 1.0]);
 	
 	// Apply the inverse of the projection transformation to get a point in 3D space

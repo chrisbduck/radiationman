@@ -22,14 +22,15 @@ var g_Running = false;
 //------------------------------------------------------------------------------
 function Mesh(positions, indices, uvs, normals, primitive_type, texture)
 {
-	this.m_Positions = positions;
+	this.m_VertPositions = positions;
 	this.m_Indices = indices;
 	this.m_UVs = uvs;
 	this.m_Normals = normals;
 	this.m_PrimitiveType = primitive_type;
 	this.m_RotationDeg = [0, 0];
 	this.m_RotationDegPerSec = [0, 0];
-	this.m_Translation = [0, 0];
+	this.m_Translation = [0, 0, 0];			// 3D position
+	this.m_Position = null;					// 2D position (later)
 	this.m_RotationAxis = [null, null];
 	this.m_Lighting = true;
 	this.m_Ambient = 0.5;
@@ -42,6 +43,7 @@ function Mesh(positions, indices, uvs, normals, primitive_type, texture)
 
 //------------------------------------------------------------------------------
 Mesh.prototype.setTranslation = function(translation) { this.m_Translation = translation; };
+Mesh.prototype.setPosition = function(position) { this.m_Position = position; }
 Mesh.prototype.setTexture = function(texture) { this.m_Texture = texture; };
 Mesh.prototype.setLighting = function(active) { this.m_Lighting = active; };
 Mesh.prototype.setLightingLevel = function(ambient, lit) { this.m_Ambient = ambient; this.m_Lit = lit; }
@@ -94,8 +96,8 @@ Mesh.prototype.draw = function()
 	mat3.transpose(normal_matrix);
 	gl.uniformMatrix3fv(prog.u_NormalMatrix, false, normal_matrix);
 	
-	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
-	gl.vertexAttribPointer(prog.a_VertPos, this.m_Positions.item_size, gl.FLOAT,
+	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_VertPositions);
+	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.item_size, gl.FLOAT,
 						   false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertPos);
 	
@@ -145,7 +147,7 @@ Mesh.prototype.draw = function()
 						gl.UNSIGNED_SHORT, 0);
 	}
 	else
-		gl.drawArrays(this.m_PrimitiveType, 0, this.m_Positions.num_items);
+		gl.drawArrays(this.m_PrimitiveType, 0, this.m_VertPositions.num_items);
 	
 	gl.disableVertexAttribArray(prog.a_VertPos);
 	gl.disableVertexAttribArray(prog.a_VertUV);

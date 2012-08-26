@@ -21,7 +21,8 @@ var g_CubeNormals = null;
 
 var JUMP_IMPULSE_PPS = 300;
 var DECELERATION_SCALE = 1.5;
-var SMALL_FLOAT = 0.001;		// small adjustment to avoid rounding errors
+var SMALL_FLOAT = 0.001;			// small adjustment to avoid rounding errors
+var RADS_HEALED_PER_PYRAMID = 20;
 
 //------------------------------------------------------------------------------
 // Pyramid
@@ -104,7 +105,8 @@ function buildPyramid(pos)
 	
 	var pyramid = new Mesh(g_PyramidPositions, null, g_PyramidUVs, g_PyramidNormals, gl.TRIANGLES, g_WateryTexture);
 	var centre_pos = get3DPosFrom2D(pos[0], pos[1]);
-	pyramid.setTranslation(centre_pos);
+	pyramid.setTranslation(centre_pos);		// 3D
+	pyramid.setPosition(pos);				// 2D
 	pyramid.setScale(0.03);
 	pyramid.setRotation(0, [0, 1, 0], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setRotation(1, [0, 0, 1], getPlusMinusRandom(45.0, 90.0));
@@ -241,7 +243,8 @@ function buildCube(pos)
 	
 	var cube = new Mesh(g_CubePositions, g_CubeIndices, g_CubeUVs, g_CubeNormals, gl.TRIANGLES, g_LavaTexture);
 	var centre = get3DPosFrom2D(pos[0], pos[1]);
-	cube.setTranslation(centre);
+	cube.setTranslation(centre);		// 3D
+	cube.setPosition(pos);				// 2D
 	cube.setScale(0.02);
 	cube.setRotation(0, [1, 0, 0], getRandom(90.0, 180.0));
 	cube.setRotation(1, [0, 1, 0], getRandom(90.0, 180.0));
@@ -551,6 +554,18 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 		collideRects(this, g_Platforms[index], true);
 	this.m_IsOnPlatform = this.m_Collided[3];	// rect bottom collision
 	
+	// Check for collisions with pyramids
+	var delete_indices = [];
+	for (index in g_Pyramids)
+		if (collideSphere(this, g_Pyramids[index]))
+		{
+			this.m_Rads = Math.max(this.m_Rads - RADS_HEALED_PER_PYRAMID, 0);
+			delete_indices = delete_indices.concat([index]);
+		}
+	delete_indices.reverse();
+	for (index in delete_indices)
+		g_Pyramids.splice(delete_indices[index], 1);
+	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
 	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
@@ -725,10 +740,10 @@ function loadTextures()
 function initObjects()
 {
 	var pyramid_positions = [
-		[100, 100], [150, 100], [200, 100]
+		[100, 400], [150, 420], [200, 430]
 	];
 	var cube_positions = [
-		[350, 100], [400, 100], [450, 100]
+		[350, 430], [400, 420], [450, 400]
 	];
 	
 	for (index in pyramid_positions)
@@ -739,7 +754,7 @@ function initObjects()
 	addGlobalSprite(g_BGTexture, [0, 0]);
 	
 	addPlatform(0, 512 - 27, 512);
-	addPlatform(100, 350, 250);
+	addPlatform(150, 350, 250);
 	g_Player = new Player(g_PlayerTexture, 0, 512 - 27 - 64 - 100);
 	
 	// Hide the "loading" image
