@@ -4,6 +4,8 @@
 
 var g_TestTexture;
 var g_LavaTexture;
+var g_PlatformTexture;
+var g_Platform;
 
 //------------------------------------------------------------------------------
 // Pyramid
@@ -222,9 +224,10 @@ function buildCube()
 //------------------------------------------------------------------------------
 // Sprite
 //------------------------------------------------------------------------------
-function addSprite(texture, position)
+function addGlobalSprite(texture, position)
 {
-	g_Sprites = g_Sprites.concat([new Sprite(texture, position)]);
+	sprite = new Sprite(texture, position);
+	g_Sprites = g_Sprites.concat([sprite]);
 }
 
 //------------------------------------------------------------------------------
@@ -265,9 +268,9 @@ function Sprite(texture, position)
 }
 
 //------------------------------------------------------------------------------
-Sprite.prototype.setTranslation = function(translation)
+Sprite.prototype.setPosition = function(position)
 {
-	this.m_Translation = translation;
+	this.m_Position = position;
 };
 
 //------------------------------------------------------------------------------
@@ -334,6 +337,48 @@ Sprite.prototype.draw = function()
 };
 
 //------------------------------------------------------------------------------
+// Platform
+//------------------------------------------------------------------------------
+function Platform(x, y, width)
+{
+	this.m_Sprites = [];
+	this.m_Position = [x, y];
+	this.m_Width = width;
+	position = [x, y];
+	image_width = g_PlatformTexture.image.width;
+	while (width > 0)
+	{
+		this.m_Sprites = this.m_Sprites.concat([new Sprite(g_PlatformTexture, position)]);
+		position[0] += image_width;
+		width -= image_width;
+	}
+}
+
+//------------------------------------------------------------------------------
+Platform.prototype.draw = function()
+{
+	for (index in this.m_Sprites)
+		this.m_Sprites[index].draw();
+};
+
+//------------------------------------------------------------------------------
+// Player
+//------------------------------------------------------------------------------
+function Player(x, y)
+{
+	this.m_Texture = new Texture('data/man.png');
+	this.m_Position = [x, y];
+	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
+}
+
+//------------------------------------------------------------------------------
+Player.prototype.draw = function()
+{
+	this.m_Sprite.setPosition(this.m_Position);
+	this.m_Sprite.draw();
+}
+
+//------------------------------------------------------------------------------
 // Misc
 //------------------------------------------------------------------------------
 function initObjects()
@@ -343,14 +388,15 @@ function initObjects()
 	g_LavaTexture = new Texture('data/collectable.jpg');
 	g_WateryTexture = new Texture('data/watery.jpg');
 	var player_texture = new Texture('data/man.png');
-	var platform_texture = new Texture('data/platform.png');
+	g_PlatformTexture = new Texture('data/platform.png');
 	
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();
 	
-	addSprite(bg_texture, [0, 0]);
-	addSprite(platform_texture, [256, 400]);
-	addSprite(player_texture, [256, 256]);
+	addGlobalSprite(bg_texture, [0, 0]);
+	
+	g_Platform = new Platform(0, 512 - 27, 512);
+	g_Player = new Player(0, 512 - 27 - 64);
 }
 
 //------------------------------------------------------------------------------

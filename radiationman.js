@@ -231,6 +231,8 @@ function renderScene()
 {
 	for (index in g_Sprites)
 		g_Sprites[index].draw();
+	g_Platform.draw();
+	g_Player.draw();
 	g_Pyramid.draw();
 	g_Cube.draw();
 }
