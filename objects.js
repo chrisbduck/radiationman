@@ -284,6 +284,15 @@ Sprite.prototype.setColour = function(colour)
 //------------------------------------------------------------------------------
 Sprite.prototype.draw = function()
 {
+	// Check for off screen
+	var x = this.m_Position[0];
+	var y = this.m_Position[1];
+	var width = this.m_Width;
+	var height = this.m_Height;
+	if (	   x >= gl.m_ViewportWidth || x + width < 0
+			|| y >= gl.m_ViewportHeight || y + height < 0)
+		return;
+	
 	// Shader prog
 	prog = this.m_ShaderProg;
 	gl.useProgram(prog);
@@ -298,10 +307,6 @@ Sprite.prototype.draw = function()
 	var world_matrix = mat4.create();
 	mat4.identity(world_matrix);
 	
-	var x = this.m_Position[0];
-	var y = this.m_Position[1];
-	var width = this.m_Width;
-	var height = this.m_Height;
 	var xoff = -1 + (width + 2 * x) / gl.m_ViewportWidth;
 	var yoff =  1 - (height + 2 * y) / gl.m_ViewportHeight;		// flip y so 0 is at the top
 	
@@ -346,6 +351,8 @@ function Platform(x, y, width)
 	this.m_Sprites = [];
 	this.m_Position = [x, y];
 	this.m_Width = width;
+	this.m_VelocityPPS = [0, 0];
+	this.m_CollideRect = [0, 0, width, 27];
 	position = [x, y];
 	image_width = g_PlatformTexture.image.width;
 	while (width > 0)
@@ -376,11 +383,15 @@ function Player(x, y)
 {
 	this.m_Texture = new Texture('data/man.png');
 	this.m_Position = [x, y];
+	this.m_PrevPosition = [x, y];
 	this.m_VelocityPPS = [0, 0];
 	this.m_AccelerationPPSPS = [0, 0];
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
-	this.m_XAccelPPSPS = 300;
-	this.m_XVelPPSTarget = 120;
+	this.m_XAccelPPSPS = 450;
+	this.m_XVelPPSTarget = 180;
+	this.m_CollideRect = [22, 8, 42, 64];
+	this.m_Collided = [false, false, false, false];		// left, top, right, bottom
+	this.m_IsOnPlatform = false;
 }
 
 //------------------------------------------------------------------------------
@@ -391,10 +402,17 @@ Player.prototype.draw = function()
 };
 
 //------------------------------------------------------------------------------
+var JUMP_IMPULSE_PPS = 250;
+var DECELERATION_SCALE = 1.5;
+
 Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 {
 	// x_input = 0, -1, or 1
 	// jump_input = 0 or 1
+	
+	//
+	// Input & acceleration
+	//
 	
 	if (x_input != 0)
 	{
@@ -404,6 +422,19 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	}
 	else
 		this.m_AccelerationPPSPS[0] = 0;
+	
+	if (this.m_IsOnPlatform)
+	{
+		// Jumping - just modify the speed directly
+		if (jump_input > 0)
+			this.m_VelocityPPS[1] = JUMP_IMPULSE_PPS;
+	}
+	else
+		this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
+	
+	// 
+	// Velocity
+	//
 	
 	// Update velocity towards the target
 	this.m_VelocityPPS[0] += time_diff_sec * this.m_AccelerationPPSPS[0];
@@ -431,13 +462,13 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 		// No X acceleration.  Decelerate automatically
 		if (this.m_VelocityPPS[0] > 0)
 		{
-			this.m_VelocityPPS[0] -= time_diff_sec * this.m_XAccelPPSPS;
+			this.m_VelocityPPS[0] -= time_diff_sec * this.m_XAccelPPSPS * DECELERATION_SCALE;
 			if (this.m_VelocityPPS[0] < 0)
 				this.m_VelocityPPS[0] = 0;
 		}
 		else if (this.m_VelocityPPS[0] < 0)
 		{
-			this.m_VelocityPPS[0] += time_diff_sec * this.m_XAccelPPSPS;
+			this.m_VelocityPPS[0] += time_diff_sec * this.m_XAccelPPSPS * DECELERATION_SCALE;
 			if (this.m_VelocityPPS[0] > 0)
 				this.m_VelocityPPS[0] = 0;
 		}
@@ -445,9 +476,123 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	
 	this.m_VelocityPPS[1] += time_diff_sec * this.m_AccelerationPPSPS[1];
 	
+	//
+	// Position
+	//
+	
 	this.m_Position[0] += time_diff_sec * this.m_VelocityPPS[0];
 	this.m_Position[1] += time_diff_sec * this.m_VelocityPPS[1];
+	
+	//
+	// Collide the player with all platforms
+	//
+	
+	this.m_Collided = [false, false, false, false];
+	for (index in g_Platforms)
+		collideRects(this, g_Platforms[index], true);
+	this.m_IsOnPlatform = this.m_Collided[3];	// rect bottom collision
+	
+	// Store positions for next time
+	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
+	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
 };
+
+//------------------------------------------------------------------------------
+var SMALL_FLOAT = 0.001;	// small adjustment to avoid rounding errors
+
+function collideRects(adjust_obj, other_obj, do_adjust)
+{
+	var obj1 = adjust_obj;
+	var obj2 = other_obj;
+	// Assume obj2's speed is zero.
+	
+	var Obj1Left   = obj1.m_Position[0] + obj1.m_CollideRect[0];
+	var Obj1Top    = obj1.m_Position[1] + obj1.m_CollideRect[1];
+	var Obj1Right  = obj1.m_Position[0] + obj1.m_CollideRect[2];
+	var Obj1Bottom = obj1.m_Position[1] + obj1.m_CollideRect[3];
+	var Obj2Left   = obj2.m_Position[0] + obj2.m_CollideRect[0];
+	var Obj2Top    = obj2.m_Position[1] + obj2.m_CollideRect[1];
+	var Obj2Right  = obj2.m_Position[0] + obj2.m_CollideRect[2];
+	var Obj2Bottom = obj2.m_Position[1] + obj2.m_CollideRect[3];
+	
+	// Check for no collision
+	if (	   Obj1Right <= Obj2Left
+			|| Obj1Left >= Obj2Right
+			|| Obj1Bottom <= Obj2Top
+			|| Obj1Top >= Obj2Bottom)
+		return false;
+	
+	// There's a collision.  If we should adjust an object, modify its velocity and position
+	// appropriately.
+	if (do_adjust)
+	{
+		var PrevObj1Left   = obj1.m_PrevPosition[0] + obj1.m_CollideRect[0];
+		var PrevObj1Top    = obj1.m_PrevPosition[1] + obj1.m_CollideRect[1];
+		var PrevObj1Right  = obj1.m_PrevPosition[0] + obj1.m_CollideRect[2];
+		var PrevObj1Bottom = obj1.m_PrevPosition[1] + obj1.m_CollideRect[3];
+		
+		// Only count collision sides that have started this update, when adjusting, or we'll have problems
+		// with wide platforms and such.
+		
+		// X collision
+		if (Obj2Left <= Obj1Left && Obj1Left < Obj2Right
+			&& PrevObj1Left >= Obj2Right)
+		{
+			// Collision on the left side of obj1 (probably)
+			obj1.m_Collided[0] = true;	// left
+			
+			// Move to the right a bit
+			obj1.m_Position[0] = Obj2Right - obj1.m_CollideRect[0] + SMALL_FLOAT;
+			
+			// Limit X speed
+			if (obj1.m_VelocityPPS[0] < 0)
+				obj1.m_VelocityPPS[0] = 0;
+		}
+		else if (Obj2Left <= Obj1Right && Obj1Right < Obj2Right
+				 && PrevObj1Right < Obj2Left)
+		{
+			// Collision on the right side of obj1 (probably).
+			obj1.m_Collided[2] = true;	// right
+			
+			// Move to the left a bit
+			obj1.m_Position[0] = Obj2Left - obj1.m_CollideRect[2] - SMALL_FLOAT;
+			
+			// Limit X speed
+			if (obj1.m_VelocityPPS[0] > 0)
+				obj1.m_VelocityPPS[0] = 0;
+		}
+		
+		// Y collision
+		if (Obj2Top <= Obj1Top && Obj1Top < Obj2Bottom
+			&& PrevObj1Top >= Obj2Bottom)
+		{
+			// Collision on the top side of obj1 (probably).
+			obj1.m_Collided[1] = true;	// top
+			
+			// Move down a bit
+			obj1.m_Position[1] = Obj2Bottom - obj1.m_CollideRect[1] + SMALL_FLOAT;
+			
+			// Limit Y speed
+			if (obj1.m_VelocityPPS[1] < 0)
+				obj1.m_VelocityPPS[1] = 0;
+		}
+		else if (Obj2Top <= Obj1Bottom && Obj1Bottom < Obj2Bottom
+				 && PrevObj1Bottom < Obj2Top)
+		{
+			// Collision on the bottom side of obj1 (probably).
+			obj1.m_Collided[3] = true;	// bottom
+			
+			// Move up a bit
+			obj1.m_Position[1] = Obj2Top - obj1.m_CollideRect[3] - SMALL_FLOAT;
+			
+			// Limit Y speed
+			if (obj1.m_VelocityPPS[1] > 0)
+				obj1.m_VelocityPPS[1] = 0;
+		}
+	}
+	
+	return true;
+}
 
 //------------------------------------------------------------------------------
 // Misc
@@ -468,7 +613,7 @@ function initObjects()
 	
 	addPlatform(0, 512 - 27, 512);
 	addPlatform(100, 350, 250);
-	g_Player = new Player(0, 512 - 27 - 64);
+	g_Player = new Player(0, 512 - 27 - 64 - 100);
 }
 
 //------------------------------------------------------------------------------
