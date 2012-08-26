@@ -9,6 +9,7 @@ var g_Textures = [];
 var g_NumLoadingTextures = 0;		// >0 when a texture is loading
 var g_TexInitialisedCount = 0;
 var g_TexturesLoadedCallback;
+var g_CanPlaySound = null;
 
 //------------------------------------------------------------------------------
 function initGL(canvas)
@@ -188,6 +189,22 @@ function get3DPosFrom2D(desired_x, desired_y)
 	mat4.inverse(g_ProjMatrix, inv_proj_matrix);
 	mat4.multiplyVec3(inv_proj_matrix, pos);
 	return pos;
+}
+
+//------------------------------------------------------------------------------
+function playSound(file_name)
+{
+	if (g_CanPlaySound === null)
+	{
+		// Check if we can play the sound
+		g_CanPlaySound = (new Audio()).canPlayType("audio/ogg; codecs=vorbis");
+		if (!g_CanPlaySound)
+			console.log("Can't play sound! :(");
+	}
+	if (!g_CanPlaySound)
+		return;
+	
+	new Audio(file_name).play();
 }
 
 //------------------------------------------------------------------------------

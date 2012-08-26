@@ -496,6 +496,8 @@ function updateInput(object, time_diff_sec, x_input, jump_input)
 			{
 				object.m_VelocityPPS[1] = -object.m_JumpImpulsePPS;
 				object.m_Jumping = true;
+				if (object === g_Player)
+					playSound("data/sfx/Jump6.ogg");
 			}
 		}
 	}
@@ -624,6 +626,7 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 		if (collideSphere(this, g_Pyramids[index]))
 		{
 			this.m_Rads = Math.max(this.m_Rads - RADS_HEALED_PER_PYRAMID, 0);
+			playSound("data/sfx/Pickup_Coin5.ogg");
 			delete_indices = delete_indices.concat([index]);
 		}
 	delete_indices.reverse();
@@ -637,6 +640,7 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 		{
 			this.m_Mutation++;
 			this.updateMutation();
+			playSound("data/sfx/Powerup3.ogg");
 			delete_indices = delete_indices.concat([index]);
 		}
 	delete_indices.reverse();
@@ -694,6 +698,7 @@ Player.prototype.die = function()
 {
 	this.m_Texture = g_PlayerDeadTexture;
 	this.m_Sprite.m_Texture = g_PlayerDeadTexture;
+	playSound("data/sfx/Explosion2.ogg");
 };
 
 //------------------------------------------------------------------------------
