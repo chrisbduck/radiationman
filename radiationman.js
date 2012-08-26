@@ -14,7 +14,7 @@ var g_Cubes = [];
 var g_Pyramids = [];
 var g_ProjMatrix;
 var g_Sprites = [];
-var g_GravityPPSPS = 150;
+var g_GravityPPSPS = 250;
 var g_Running = false;
 
 //------------------------------------------------------------------------------

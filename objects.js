@@ -20,6 +20,10 @@ var g_CubeIndices = null;
 var g_CubeUVs = null;
 var g_CubeNormals = null;
 
+var JUMP_IMPULSE_PPS = 300;
+var DECELERATION_SCALE = 1.5;
+var SMALL_FLOAT = 0.001;		// small adjustment to avoid rounding errors
+
 //------------------------------------------------------------------------------
 // Pyramid
 //------------------------------------------------------------------------------
@@ -440,9 +444,6 @@ Player.prototype.draw = function()
 };
 
 //------------------------------------------------------------------------------
-var JUMP_IMPULSE_PPS = 180;
-var DECELERATION_SCALE = 1.5;
-
 Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 {
 	// x_input = 0, -1, or 1
@@ -453,38 +454,48 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	//
 	
 	if (this.m_Alive)
+		this.updateInput(time_diff_sec, x_input, jump_input);
+	
+	this.updatePhysics(time_diff_sec);
+	this.updateCollisions(time_diff_sec);
+	
+	if (this.m_Alive)
+		this.updateStatus(time_diff_sec);
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.updateInput = function(time_diff_sec, x_input, jump_input)
+{
+	if (x_input != 0)
 	{
-		if (x_input != 0)
+		//this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
+		this.m_AccelerationPPSPS[0] = this.m_XAccelPPSPS * x_input;
+		this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
+	}
+	else
+		this.m_AccelerationPPSPS[0] = 0;
+	
+	if (this.m_IsOnPlatform)
+	{
+		// Jumping - just modify the speed directly
+		if (jump_input > 0)
 		{
-			//this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
-			this.m_AccelerationPPSPS[0] = this.m_XAccelPPSPS * x_input;
-			this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
-		}
-		else
-			this.m_AccelerationPPSPS[0] = 0;
-		
-		if (this.m_IsOnPlatform)
-		{
-			// Jumping - just modify the speed directly
-			if (jump_input > 0)
+			if (!this.m_Jumping)	// ignore held keys
 			{
-				if (!this.m_Jumping)	// ignore held keys
-				{
-					this.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
-					this.m_Jumping = true;
-				}
+				this.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
+				this.m_Jumping = true;
 			}
 		}
-		else
-			this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
-		if (jump_input == 0)
-			this.m_Jumping = false;
 	}
+	else
+		this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
+	if (jump_input == 0)
+		this.m_Jumping = false;
+};
 	
-	// 
-	// Velocity
-	//
-	
+//------------------------------------------------------------------------------
+Player.prototype.updatePhysics = function(time_diff_sec)
+{
 	// Update velocity towards the target
 	this.m_VelocityPPS[0] += time_diff_sec * this.m_AccelerationPPSPS[0];
 	if (this.m_AccelerationPPSPS[0] != 0)
@@ -531,10 +542,12 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	
 	this.m_Position[0] += time_diff_sec * this.m_VelocityPPS[0];
 	this.m_Position[1] += time_diff_sec * this.m_VelocityPPS[1];
-	
-	//
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.updateCollisions = function(time_diff_sec)
+{
 	// Collide the player with all platforms
-	//
 	
 	this.m_Collided = [false, false, false, false];
 	for (index in g_Platforms)
@@ -544,32 +557,33 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
 	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
-	
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.updateStatus = function(time_diff_sec)
+{
 	// Update rads
-	if (this.m_Alive)
+	this.m_Rads += time_diff_sec * RADS_PER_SEC;
+	var new_rads_display = Math.floor(this.m_Rads);
+	if (new_rads_display != this.m_RadsDisplay)
 	{
-		this.m_Rads += time_diff_sec * RADS_PER_SEC;
-		var new_rads_display = Math.floor(this.m_Rads);
-		if (new_rads_display != this.m_RadsDisplay)
+		this.m_RadsDisplay = new_rads_display;
+		document.getElementById("rads").innerText = "Rads: " + new_rads_display;
+		
+			if (this.m_Rads < 25)	status = "OK";
+		else if (this.m_Rads < 50)	status = "Sick";
+		else if (this.m_Rads < 75)	status = "Very Sick";
+		else if (this.m_Rads < 100)	status = "Dying";
+		else
 		{
-			this.m_RadsDisplay = new_rads_display;
-			document.getElementById("rads").innerText = "Rads: " + new_rads_display;
-			
-				if (this.m_Rads < 25)	status = "OK";
-			else if (this.m_Rads < 50)	status = "Sick";
-			else if (this.m_Rads < 75)	status = "Very Sick";
-			else if (this.m_Rads < 100)	status = "Dying";
-			else
-			{
-				status = "Dead";
-				this.m_Alive = false;
-			}
-			
-			document.getElementById("notes").innerText = status;
-			
-			if (!this.m_Alive)
-				this.die();
+			status = "Dead";
+			this.m_Alive = false;
 		}
+		
+		document.getElementById("notes").innerText = status;
+		
+		if (!this.m_Alive)
+			this.die();
 	}
 };
 
@@ -581,8 +595,6 @@ Player.prototype.die = function()
 };
 
 //------------------------------------------------------------------------------
-var SMALL_FLOAT = 0.001;	// small adjustment to avoid rounding errors
-
 function collideRects(adjust_obj, other_obj, do_adjust)
 {
 	var obj1 = adjust_obj;
@@ -675,6 +687,27 @@ function collideRects(adjust_obj, other_obj, do_adjust)
 	}
 	
 	return true;
+}
+
+//------------------------------------------------------------------------------
+function collideSphere(obj1, obj2)
+{
+	// A very basic sphere-to-sphere collision check by distances
+	// We assume for now that obj1 has a collide rect and obj2 doesn't (player to other)
+	
+	var obj1_collide_width = obj1.m_CollideRect[2] - obj1.m_CollideRect[0];
+	var obj1_collide_height = obj1.m_CollideRect[3] - obj1.m_CollideRect[1];
+	var obj1_collide_rad = (obj1_collide_width + obj1_collide_height) / 2;
+	var obj1_collide_rad_sq = obj1_collide_rad * obj1_collide_rad;
+	
+	var obj1_cx = obj1.m_Position[0] + (obj1.m_CollideRect[0] + obj1.m_CollideRect[2]) / 2;
+	var obj1_cy = obj1.m_Position[1] + (obj1.m_CollideRect[1] + obj1.m_CollideRect[2]) / 2;
+	
+	var offsetx = obj2.m_Position[0] - obj1_cx;
+	var offsety = obj2.m_Position[1] - obj1_cy;
+	var offsetsq = offsetx * offsetx + offsety * offsety;
+	
+	return offsetsq < obj1_collide_rad_sq;
 }
 
 //------------------------------------------------------------------------------
