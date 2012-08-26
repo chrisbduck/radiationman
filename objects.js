@@ -504,7 +504,13 @@ function updateInput(object, time_diff_sec, x_input, jump_input)
 function updatePhysics(object, time_diff_sec)
 {
 	// Update velocity towards the target
-	object.m_VelocityPPS[0] += time_diff_sec * object.m_AccelerationPPSPS[0];
+	var velocity_x_delta_pps = time_diff_sec * object.m_AccelerationPPSPS[0];
+	if (	(object.m_AccelerationPPSPS[0] < 0 && object.m_VelocityPPS[0] > 0)
+		||  (object.m_AccelerationPPSPS[0] > 0 && object.m_VelocityPPS[0] < 0))
+	{
+		velocity_x_delta_pps *= DECELERATION_SCALE;		// decelerating - turn faster
+	}
+	object.m_VelocityPPS[0] += velocity_x_delta_pps;
 	if (object.m_AccelerationPPSPS[0] != 0)
 	{
 		if (object.m_AccelerationPPSPS[0] > 0)
