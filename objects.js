@@ -28,6 +28,7 @@ var PLAYER_JUMP_IMPULSE_PPS = 300;
 var ROBOT_JUMP_IMPULSE_PPS = 200;
 var DECELERATION_SCALE = 1.5;
 var SMALL_FLOAT = 0.001;			// small adjustment to avoid rounding errors
+var RADS_PER_SEC = 1.5;
 var RADS_HEALED_PER_PYRAMID = 20;
 
 //------------------------------------------------------------------------------
@@ -419,9 +420,6 @@ function addPlatform(x, y, width)
 //------------------------------------------------------------------------------
 // Player
 //------------------------------------------------------------------------------
-
-var RADS_PER_SEC = 1.0;
-
 function Player(x, y)
 {
 	this.m_Texture = g_PlayerTextures[0];
@@ -923,10 +921,17 @@ function loadTextures()
 function initObjects()
 {
 	var pyramid_positions = [
-		[100, 400], [150, 420], [200, 430]
+		[90, 300], [475, 270], [230, 420], [320, 150], [80, 70]
 	];
 	var cube_positions = [
-		[350, 430], [400, 420], [450, 400]
+		[30, 210], [485, 25], [475, 440]
+	];
+	var platform_data = [
+		[0, 512 - 27, 512], [150, 370, 250], [0, 250, 220], [450, 300, 72], [0, 100, 100],
+		[250, 100, 262]
+	];
+	var robot_positions = [
+		[300, 280], [50, 180], [400, 30], [420, 220]
 	];
 	
 	for (index in pyramid_positions)
@@ -936,11 +941,16 @@ function initObjects()
 	
 	addGlobalSprite(g_BGTexture, [0, 0]);
 	
-	addPlatform(0, 512 - 27, 512);
-	addPlatform(150, 350, 250);
+	for (index in platform_data)
+	{
+		platform = platform_data[index];
+		addPlatform(platform[0], platform[1], platform[2]);
+	}
+	
 	g_Player = new Player(0, 512 - 27 - 64 - 100);
 	
-	addRobot([300, 280]);
+	for (index in robot_positions)
+		addRobot(robot_positions[index]);
 	
 	// Hide the "loading" image
 	loading_img = document.getElementById("loading");
