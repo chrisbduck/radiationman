@@ -438,6 +438,7 @@ function Player(x, y)
 	this.m_Jumping = false;
 	this.m_Rads = 0.0;
 	this.m_RadsDisplay = 0;
+	this.m_TouchingRobots = 0;
 	this.m_Mutation = 0;
 	this.m_Alive = true;
 	this.hitScreenXEdge = doNothing;
@@ -637,6 +638,15 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 	for (index in delete_indices)
 		g_Cubes.splice(delete_indices[index], 1);
 	
+	// Check for collisions with robots
+	this.m_TouchingRobots = 0;
+	for (index in g_Robots)
+		if (collideRects(this, g_Robots[index]))
+		{
+			this.m_TouchingRobots++;
+			console.log('I touched a robot');
+		}
+	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
 	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
@@ -646,7 +656,8 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 Player.prototype.updateStatus = function(time_diff_sec)
 {
 	// Update rads
-	this.m_Rads += time_diff_sec * RADS_PER_SEC;
+	var rad_multiplier = 1 + 40 * this.m_TouchingRobots;
+	this.m_Rads += time_diff_sec * RADS_PER_SEC * rad_multiplier;
 	var new_rads_display = Math.floor(this.m_Rads);
 	if (new_rads_display != this.m_RadsDisplay)
 	{
