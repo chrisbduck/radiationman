@@ -9,84 +9,98 @@ var g_PlayerTexture;
 var g_PlatformTexture;
 var g_Platforms = [];
 
+// Pyramids
+var g_PyramidPositions = null;
+var g_PyramidUVs = null;
+var g_PyramidNormals = null;
+
+// Cubes
+var g_CubePositions = null;
+var g_CubeIndices = null;
+var g_CubeUVs = null;
+var g_CubeNormals = null;
+
 //------------------------------------------------------------------------------
 // Pyramid
 //------------------------------------------------------------------------------
-function buildPyramid()
+function buildPyramid(pos)
 {
-	// -1.0, -0.5574, -0.4082		// A
-	//  1.0, -0.5574, -0.4082		// B
-	//  0.0,  1.1547, -0.4082		// C
-	//  0.0,  0.0,     1.2247		// D
+	if (g_PyramidPositions === null)
+	{
+		// -1.0, -0.5574, -0.4082		// A
+		//  1.0, -0.5574, -0.4082		// B
+		//  0.0,  1.1547, -0.4082		// C
+		//  0.0,  0.0,     1.2247		// D
+		
+		// Positions
+		var positions = [
+			// Front face
+			0.0,  1.1547, -0.4082,		// C
+		-1.0, -0.5574, -0.4082,		// A
+			1.0, -0.5574, -0.4082,		// B
+			// Right-back face
+			0.0,  1.1547, -0.4082,		// C
+			1.0, -0.5574, -0.4082,		// B
+			0.0,  0.0,     1.2247,		// D
+			// Left-back face
+			0.0,  1.1547, -0.4082,		// C
+			0.0,  0.0,     1.2247,		// D
+		-1.0, -0.5574, -0.4082,		// A
+			// Bottom face
+			1.0, -0.5574, -0.4082,		// B
+		-1.0, -0.5574, -0.4082,		// A
+			0.0,  0.0,     1.2247,		// D
+		];
+		g_PyramidPositions = createStaticFloatBuffer(positions, 3, 12);
+		
+		// UVs
+		var uvs = [
+			// Front face
+			1.0, 0.5,		// C
+			0.0, 0.0,		// A
+			0.5, 1.0,		// B
+			// Right face
+			1.0, 0.5,		// C
+			0.5, 1.0,		// B
+			1.0, 1.0,		// D1
+			// Back face
+			1.0, 0.5,		// C
+			1.0, 0.0,		// D2
+			0.0, 0.0,		// A
+			// Left face
+			0.5, 1.0,		// B
+			0.0, 0.0,		// A
+			0.0, 1.0,		// D3
+		];
+		g_PyramidUVs = createStaticFloatBuffer(uvs, 2, 12);
+		
+		// Normals
+		// In case I need to calculate these again, it's pretty simple:
+		// vec1 = vert2 - vert1;  vec2 = vert3 - vert2
+		// normal = normalise(cross(vec1, vec2))
+		var normals = [
+			// Front face
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 1.0,
+			0.0, 0.0, 1.0,
+			// Right-back face
+			-0.8133, -0.475, -0.3359,
+			-0.8133, -0.475, -0.3359,
+			-0.8133, -0.475, -0.3359,
+			// Left-back face
+			0.8133, -0.475, -0.3359,
+			0.8133, -0.475, -0.3359,
+			0.8133, -0.475, -0.3359,
+			// Bottom face
+			0.0, 0.9434, -0.3231,
+			0.0, 0.9434, -0.3231,
+			0.0, 0.9434, -0.3231,
+		];
+		g_PyramidNormals = createStaticFloatBuffer(normals, 3, 12);
+	}
 	
-	// Positions
-	var positions = [
-		// Front face
-	    0.0,  1.1547, -0.4082,		// C
-	   -1.0, -0.5574, -0.4082,		// A
-	    1.0, -0.5574, -0.4082,		// B
-		// Right-back face
-	    0.0,  1.1547, -0.4082,		// C
-	    1.0, -0.5574, -0.4082,		// B
-	    0.0,  0.0,     1.2247,		// D
-		// Left-back face
-	    0.0,  1.1547, -0.4082,		// C
-	    0.0,  0.0,     1.2247,		// D
-	   -1.0, -0.5574, -0.4082,		// A
-		// Bottom face
-	    1.0, -0.5574, -0.4082,		// B
-	   -1.0, -0.5574, -0.4082,		// A
-	    0.0,  0.0,     1.2247,		// D
-	];
-	var position_buf = createStaticFloatBuffer(positions, 3, 12);
-	
-	// UVs
-	var uvs = [
-		// Front face
-		1.0, 0.5,		// C
-		0.0, 0.0,		// A
-		0.5, 1.0,		// B
-		// Right face
-		1.0, 0.5,		// C
-		0.5, 1.0,		// B
-		1.0, 1.0,		// D1
-		// Back face
-		1.0, 0.5,		// C
-		1.0, 0.0,		// D2
-		0.0, 0.0,		// A
-		// Left face
-		0.5, 1.0,		// B
-		0.0, 0.0,		// A
-		0.0, 1.0,		// D3
-	];
-	var uv_buf = createStaticFloatBuffer(uvs, 2, 12);
-	
-	// Normals
-	// In case I need to calculate these again, it's pretty simple:
-	// vec1 = vert2 - vert1;  vec2 = vert3 - vert2
-	// normal = normalise(cross(vec1, vec2))
-	var normals = [
-		// Front face
-		0.0, 0.0, 1.0,
-		0.0, 0.0, 1.0,
-		0.0, 0.0, 1.0,
-		// Right-back face
-		-0.8133, -0.475, -0.3359,
-		-0.8133, -0.475, -0.3359,
-		-0.8133, -0.475, -0.3359,
-		// Left-back face
-		0.8133, -0.475, -0.3359,
-		0.8133, -0.475, -0.3359,
-		0.8133, -0.475, -0.3359,
-		// Bottom face
-		0.0, 0.9434, -0.3231,
-		0.0, 0.9434, -0.3231,
-		0.0, 0.9434, -0.3231,
-	];
-	var normal_buf = createStaticFloatBuffer(normals, 3, 12);
-	
-	var pyramid = new Mesh(position_buf, null, uv_buf, normal_buf, gl.TRIANGLES);
-	var centre_pos = get3DPosFrom2D(100, 100);
+	var pyramid = new Mesh(g_PyramidPositions, null, g_PyramidUVs, g_PyramidNormals, gl.TRIANGLES);
+	var centre_pos = get3DPosFrom2D(pos[0], pos[1]);
 	pyramid.setTranslation(centre_pos);
 	pyramid.setScale(0.03);
 	pyramid.setRotation(0, [0, 1, 0], getPlusMinusRandom(45.0, 90.0));
@@ -95,132 +109,136 @@ function buildPyramid()
 	pyramid.setLighting(true);
 	pyramid.setLightingLevel(0.7, 0.1);
 	pyramid.setAlpha(1.0);
-	return pyramid;
+	
+	g_Pyramids = g_Pyramids.concat([pyramid]);
 }
 
 //------------------------------------------------------------------------------
 // Cube
 //------------------------------------------------------------------------------
-function buildCube()
+function buildCube(pos)
 {
-	// Positions
-	positions = [
-		// Front face
-		-1.0, -1.0,  1.0,
-		 1.0, -1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		// Back face
-		-1.0, -1.0, -1.0,
-		-1.0,  1.0, -1.0,
-		 1.0,  1.0, -1.0,
-		 1.0, -1.0, -1.0,
-		// Top face
-		-1.0,  1.0, -1.0,
-		-1.0,  1.0,  1.0,
-		 1.0,  1.0,  1.0,
-		 1.0,  1.0, -1.0,
-		// Bottom face
-		-1.0, -1.0, -1.0,
-		 1.0, -1.0, -1.0,
-		 1.0, -1.0,  1.0,
-		-1.0, -1.0,  1.0,
-		// Right face
-		 1.0, -1.0, -1.0,
-		 1.0,  1.0, -1.0,
-		 1.0,  1.0,  1.0,
-		 1.0, -1.0,  1.0,
-		// Left face
-		-1.0, -1.0, -1.0,
-		-1.0, -1.0,  1.0,
-		-1.0,  1.0,  1.0,
-		-1.0,  1.0, -1.0,
-	];
-	position_buf = createStaticFloatBuffer(positions, 3, 24);
+	if (g_CubePositions === null)
+	{
+		// Positions
+		positions = [
+			// Front face
+			-1.0, -1.0,  1.0,
+			1.0, -1.0,  1.0,
+			1.0,  1.0,  1.0,
+			-1.0,  1.0,  1.0,
+			// Back face
+			-1.0, -1.0, -1.0,
+			-1.0,  1.0, -1.0,
+			1.0,  1.0, -1.0,
+			1.0, -1.0, -1.0,
+			// Top face
+			-1.0,  1.0, -1.0,
+			-1.0,  1.0,  1.0,
+			1.0,  1.0,  1.0,
+			1.0,  1.0, -1.0,
+			// Bottom face
+			-1.0, -1.0, -1.0,
+			1.0, -1.0, -1.0,
+			1.0, -1.0,  1.0,
+			-1.0, -1.0,  1.0,
+			// Right face
+			1.0, -1.0, -1.0,
+			1.0,  1.0, -1.0,
+			1.0,  1.0,  1.0,
+			1.0, -1.0,  1.0,
+			// Left face
+			-1.0, -1.0, -1.0,
+			-1.0, -1.0,  1.0,
+			-1.0,  1.0,  1.0,
+			-1.0,  1.0, -1.0,
+		];
+		g_CubePositions = createStaticFloatBuffer(positions, 3, 24);
+		
+		// Indices
+		var indices = [
+			0, 1, 2,      0, 2, 3,    // Front face
+			4, 5, 6,      4, 6, 7,    // Back face
+			8, 9, 10,     8, 10, 11,  // Top face
+			12, 13, 14,   12, 14, 15, // Bottom face
+			16, 17, 18,   16, 18, 19, // Right face
+			20, 21, 22,   20, 22, 23  // Left face
+		];
+		g_CubeIndices = createStaticUint16Buffer(indices, 1, 36);
+		
+		// UVs
+		uvs = [
+			// Front face
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+			// Back face
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+			0.0, 0.0,
+			// Top face
+			0.0, 1.0,
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			// Bottom face
+			1.0, 1.0,
+			0.0, 1.0,
+			0.0, 0.0,
+			1.0, 0.0,
+			// Right face
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+			0.0, 0.0,
+			// Left face
+			0.0, 0.0,
+			1.0, 0.0,
+			1.0, 1.0,
+			0.0, 1.0,
+		];
+		g_CubeUVs = createStaticFloatBuffer(uvs, 2, 24);
+		
+		// Normals
+		normals = [
+			// Front face
+			0.0,  0.0,  1.0,
+			0.0,  0.0,  1.0,
+			0.0,  0.0,  1.0,
+			0.0,  0.0,  1.0,
+			// Back face
+			0.0,  0.0, -1.0,
+			0.0,  0.0, -1.0,
+			0.0,  0.0, -1.0,
+			0.0,  0.0, -1.0,
+			// Top face
+			0.0,  1.0,  0.0,
+			0.0,  1.0,  0.0,
+			0.0,  1.0,  0.0,
+			0.0,  1.0,  0.0,
+			// Bottom face
+			0.0, -1.0,  0.0,
+			0.0, -1.0,  0.0,
+			0.0, -1.0,  0.0,
+			0.0, -1.0,  0.0,
+			// Right face
+			1.0,  0.0,  0.0,
+			1.0,  0.0,  0.0,
+			1.0,  0.0,  0.0,
+			1.0,  0.0,  0.0,
+			// Left face
+			-1.0,  0.0,  0.0,
+			-1.0,  0.0,  0.0,
+			-1.0,  0.0,  0.0,
+			-1.0,  0.0,  0.0,
+		];
+		g_CubeNormals = createStaticFloatBuffer(normals, 3, 24);
+	}
 	
-	// Indices
-	var indices = [
-		0, 1, 2,      0, 2, 3,    // Front face
-		4, 5, 6,      4, 6, 7,    // Back face
-		8, 9, 10,     8, 10, 11,  // Top face
-		12, 13, 14,   12, 14, 15, // Bottom face
-		16, 17, 18,   16, 18, 19, // Right face
-		20, 21, 22,   20, 22, 23  // Left face
-	];
-	var index_buf = createStaticUint16Buffer(indices, 1, 36);
-	
-	// UVs
-	uvs = [
-		// Front face
-		0.0, 0.0,
-		1.0, 0.0,
-		1.0, 1.0,
-		0.0, 1.0,
-		// Back face
-		1.0, 0.0,
-		1.0, 1.0,
-		0.0, 1.0,
-		0.0, 0.0,
-		// Top face
-		0.0, 1.0,
-		0.0, 0.0,
-		1.0, 0.0,
-		1.0, 1.0,
-		// Bottom face
-		1.0, 1.0,
-		0.0, 1.0,
-		0.0, 0.0,
-		1.0, 0.0,
-		// Right face
-		1.0, 0.0,
-		1.0, 1.0,
-		0.0, 1.0,
-		0.0, 0.0,
-		// Left face
-		0.0, 0.0,
-		1.0, 0.0,
-		1.0, 1.0,
-		0.0, 1.0,
-	];
-	uv_buf = createStaticFloatBuffer(uvs, 2, 24);
-	
-	// Normals
-	normals = [
-		// Front face
-		0.0,  0.0,  1.0,
-		0.0,  0.0,  1.0,
-		0.0,  0.0,  1.0,
-		0.0,  0.0,  1.0,
-		// Back face
-		0.0,  0.0, -1.0,
-		0.0,  0.0, -1.0,
-		0.0,  0.0, -1.0,
-		0.0,  0.0, -1.0,
-		// Top face
-		0.0,  1.0,  0.0,
-		0.0,  1.0,  0.0,
-		0.0,  1.0,  0.0,
-		0.0,  1.0,  0.0,
-		// Bottom face
-		0.0, -1.0,  0.0,
-		0.0, -1.0,  0.0,
-		0.0, -1.0,  0.0,
-		0.0, -1.0,  0.0,
-		// Right face
-		1.0,  0.0,  0.0,
-		1.0,  0.0,  0.0,
-		1.0,  0.0,  0.0,
-		1.0,  0.0,  0.0,
-		// Left face
-		-1.0,  0.0,  0.0,
-		-1.0,  0.0,  0.0,
-		-1.0,  0.0,  0.0,
-		-1.0,  0.0,  0.0,
-	];
-	normal_buf = createStaticFloatBuffer(normals, 3, 24);
-	
-	var cube = new Mesh(position_buf, index_buf, uv_buf, normal_buf, gl.TRIANGLES);
-	var centre = get3DPosFrom2D(400, 100);
+	var cube = new Mesh(g_CubePositions, g_CubeIndices, g_CubeUVs, g_CubeNormals, gl.TRIANGLES);
+	var centre = get3DPosFrom2D(pos[0], pos[1]);
 	cube.setTranslation(centre);
 	cube.setScale(0.02);
 	cube.setRotation(0, [1, 0, 0], getRandom(90.0, 180.0));
@@ -229,7 +247,8 @@ function buildCube()
 	cube.setLighting(false);
 	cube.setLightingLevel(0.6, 0.4);
 	cube.setAlpha(0.7);
-	return cube;
+	
+	g_Cubes = g_Cubes.concat([cube]);
 }
 
 //------------------------------------------------------------------------------
@@ -632,8 +651,17 @@ function loadTextures()
 //------------------------------------------------------------------------------
 function initObjects()
 {
-	g_Pyramid = buildPyramid();
-	g_Cube = buildCube();
+	var pyramid_positions = [
+		[100, 100], [150, 100], [200, 100]
+	];
+	var cube_positions = [
+		[350, 100], [400, 100], [450, 100]
+	];
+	
+	for (index in pyramid_positions)
+		buildPyramid(pyramid_positions[index]);
+	for (index in cube_positions)
+		buildCube(cube_positions[index]);
 	
 	addGlobalSprite(g_BGTexture, [0, 0]);
 	

@@ -10,8 +10,8 @@ var g_LastUpdateTimeSec = null;
 var g_LitMeshProg;
 var g_SpriteProg;
 var g_PressedKeys = {};
-var g_Cube;
-var g_Pyramid;
+var g_Cubes = [];
+var g_Pyramids = [];
 var g_ProjMatrix;
 var g_Sprites = [];
 var g_GravityPPSPS = 150;
@@ -252,8 +252,10 @@ function updateObjects(time_diff_sec)
 	g_Player.update(time_diff_sec, player_x_input, player_jump_input);
 	
 	// Object update
-	g_Pyramid.update(time_diff_sec);
-	g_Cube.update(time_diff_sec);
+	for (index in g_Pyramids)
+		g_Pyramids[index].update(time_diff_sec);
+	for (index in g_Cubes)
+		g_Cubes[index].update(time_diff_sec);
 }
 
 //------------------------------------------------------------------------------
@@ -263,9 +265,13 @@ function renderScene()
 		g_Sprites[index].draw();
 	for (index in g_Platforms)
 		g_Platforms[index].draw();
+	
 	g_Player.draw();
-	g_Pyramid.draw();
-	g_Cube.draw();
+	
+	for (index in g_Pyramids)
+		g_Pyramids[index].draw();
+	for (index in g_Cubes)
+		g_Cubes[index].draw();
 }
 
 //------------------------------------------------------------------------------
