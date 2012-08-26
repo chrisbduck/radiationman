@@ -24,7 +24,8 @@ var g_CubeNormals = null;
 
 doNothing = function() {};
 
-var JUMP_IMPULSE_PPS = 300;
+var PLAYER_JUMP_IMPULSE_PPS = 300;
+var ROBOT_JUMP_IMPULSE_PPS = 200;
 var DECELERATION_SCALE = 1.5;
 var SMALL_FLOAT = 0.001;			// small adjustment to avoid rounding errors
 var RADS_HEALED_PER_PYRAMID = 20;
@@ -431,6 +432,7 @@ function Player(texture, x, y)
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
 	this.m_XAccelPPSPS = 450;
 	this.m_XVelPPSTarget = 180;
+	this.m_JumpImpulsePPS = PLAYER_JUMP_IMPULSE_PPS;
 	this.m_CollideRect = [22, 8, 42, 64];
 	this.m_Collided = [false, false, false, false];		// left, top, right, bottom
 	this.m_AbovePlatform = null;
@@ -489,7 +491,7 @@ function updateInput(object, time_diff_sec, x_input, jump_input)
 		{
 			if (!object.m_Jumping)	// ignore held keys
 			{
-				object.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
+				object.m_VelocityPPS[1] = -object.m_JumpImpulsePPS;
 				object.m_Jumping = true;
 			}
 		}
@@ -530,9 +532,9 @@ function updatePhysics(object, time_diff_sec)
 			}
 		}
 	}
-	else
+	else if (object.m_IsOnPlatform)
 	{
-		// No X acceleration.  Decelerate automatically
+		// No X acceleration.  Decelerate automatically, unless we're in the air
 		if (object.m_VelocityPPS[0] > 0)
 		{
 			object.m_VelocityPPS[0] -= time_diff_sec * object.m_XAccelPPSPS * DECELERATION_SCALE;
@@ -821,6 +823,7 @@ function Robot(position)
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
 	this.m_XAccelPPSPS = 450;
 	this.m_XVelPPSTarget = 180;
+	this.m_JumpImpulsePPS = ROBOT_JUMP_IMPULSE_PPS;
 	this.m_DesiredXDir = +1;
 	this.m_CollideRect = [14, 12, 51, 63];
 	this.m_Collided = [false, false, false, false];
@@ -828,6 +831,7 @@ function Robot(position)
 	this.m_IsOnPlatform = false;
 	this.hitScreenXEdge = this.reverseDirection;
 	this.hitScreenYEdge = doNothing;
+	this.m_TimeToNextJump = null;
 }
 
 //------------------------------------------------------------------------------
@@ -841,8 +845,18 @@ Robot.prototype.draw = function()
 //------------------------------------------------------------------------------
 Robot.prototype.update = function(time_diff_sec)
 {
-	x_input = this.m_IsOnPlatform ? this.m_DesiredXDir : 0;
-	updateInput(this, time_diff_sec, x_input, 0);
+	// Calculate input
+	var x_input = this.m_IsOnPlatform ? this.m_DesiredXDir : 0;
+	var jump_input = 0;
+	if (this.m_IsOnPlatform && this.m_TimeToNextJump <= 0 && this.m_TimeToNextJump !== null)
+		jump_input = 1;
+	if (jump_input || this.m_TimeToNextJump === null)
+		this.m_TimeToNextJump = getRandom(2, 10);
+	else
+		this.m_TimeToNextJump -= time_diff_sec;
+	
+	updateInput(this, time_diff_sec, x_input, jump_input);
+	
 	updatePhysics(this, time_diff_sec);
 	
 	updateScreenCollisions(this);
