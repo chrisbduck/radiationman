@@ -823,10 +823,12 @@ function Robot(position)
 	this.m_VelocityPPS = [0, 0];
 	this.m_AccelerationPPSPS = [0, 0];
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
-	this.m_XAccelPPSPS = 450;
-	this.m_XVelPPSTarget = 180;
+	var brightness = getRandom(0.5, 1.2);
+	this.m_Sprite.setColour([brightness, brightness, brightness, 1.0]);
+	this.m_XAccelPPSPS = getRandom(400, 500);
+	this.m_XVelPPSTarget = getRandom(150, 210);
 	this.m_JumpImpulsePPS = ROBOT_JUMP_IMPULSE_PPS;
-	this.m_DesiredXDir = +1;
+	this.m_DesiredXDir = Math.random() < 0.5 ? -1 : 1;
 	this.m_CollideRect = [14, 12, 51, 63];
 	this.m_Collided = [false, false, false, false];
 	this.m_AbovePlatform = null;
@@ -927,7 +929,7 @@ function initObjects()
 		[30, 210], [485, 25], [475, 440]
 	];
 	var platform_data = [
-		[0, 512 - 27, 512], [150, 370, 250], [0, 250, 220], [450, 300, 72], [0, 100, 100],
+		[0, 512 - 27, 512], [150, 370, 250], [0, 250, 256], [450, 300, 72], [0, 100, 128],
 		[250, 100, 262]
 	];
 	var robot_positions = [
