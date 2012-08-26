@@ -20,7 +20,7 @@ var g_Running = false;
 //------------------------------------------------------------------------------
 // Mesh
 //------------------------------------------------------------------------------
-function Mesh(positions, indices, uvs, normals, primitive_type)
+function Mesh(positions, indices, uvs, normals, primitive_type, texture)
 {
 	this.m_Positions = positions;
 	this.m_Indices = indices;
@@ -35,7 +35,7 @@ function Mesh(positions, indices, uvs, normals, primitive_type)
 	this.m_Ambient = 0.5;
 	this.m_Lit = 0.5;
 	this.m_Alpha = 1.0;
-	this.m_Texture = g_TestTexture;
+	this.m_Texture = texture;
 	this.m_ShaderProg = g_LitMeshProg;
 	this.m_Scale = 1.0;
 }

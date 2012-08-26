@@ -3,7 +3,6 @@
 //
 
 var g_BGTexture;
-var g_TestTexture;
 var g_LavaTexture;
 var g_PlayerTexture;
 var g_PlatformTexture;
@@ -103,13 +102,12 @@ function buildPyramid(pos)
 		g_PyramidNormals = createStaticFloatBuffer(normals, 3, 12);
 	}
 	
-	var pyramid = new Mesh(g_PyramidPositions, null, g_PyramidUVs, g_PyramidNormals, gl.TRIANGLES);
+	var pyramid = new Mesh(g_PyramidPositions, null, g_PyramidUVs, g_PyramidNormals, gl.TRIANGLES, g_WateryTexture);
 	var centre_pos = get3DPosFrom2D(pos[0], pos[1]);
 	pyramid.setTranslation(centre_pos);
 	pyramid.setScale(0.03);
 	pyramid.setRotation(0, [0, 1, 0], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setRotation(1, [0, 0, 1], getPlusMinusRandom(45.0, 90.0));
-	pyramid.setTexture(g_WateryTexture);
 	pyramid.setLighting(true);
 	pyramid.setLightingLevel(0.7, 0.1);
 	pyramid.setAlpha(1.0);
@@ -241,13 +239,12 @@ function buildCube(pos)
 		g_CubeNormals = createStaticFloatBuffer(normals, 3, 24);
 	}
 	
-	var cube = new Mesh(g_CubePositions, g_CubeIndices, g_CubeUVs, g_CubeNormals, gl.TRIANGLES);
+	var cube = new Mesh(g_CubePositions, g_CubeIndices, g_CubeUVs, g_CubeNormals, gl.TRIANGLES, g_LavaTexture);
 	var centre = get3DPosFrom2D(pos[0], pos[1]);
 	cube.setTranslation(centre);
 	cube.setScale(0.02);
 	cube.setRotation(0, [1, 0, 0], getRandom(90.0, 180.0));
 	cube.setRotation(1, [0, 1, 0], getRandom(90.0, 180.0));
-	cube.setTexture(g_LavaTexture);
 	cube.setLighting(false);
 	cube.setLightingLevel(0.6, 0.4);
 	cube.setAlpha(0.7);
@@ -715,7 +712,6 @@ function collideSphere(obj1, obj2)
 //------------------------------------------------------------------------------
 function loadTextures()
 {
-	g_TestTexture = new Texture('sports-image.jpg');
 	g_BGTexture = new Texture('data/sort-of-cloudy.jpg');
 	g_LavaTexture = new Texture('data/collectable-sm.png');
 	g_WateryTexture = new Texture('data/watery.jpg');
