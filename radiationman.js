@@ -258,6 +258,8 @@ function updateObjects(time_diff_sec)
 		g_Pyramids[index].update(time_diff_sec);
 	for (index in g_Cubes)
 		g_Cubes[index].update(time_diff_sec);
+	for (index in g_Robots)
+		g_Robots[index].update(time_diff_sec);
 }
 
 //------------------------------------------------------------------------------
@@ -270,6 +272,8 @@ function renderScene()
 	
 	g_Player.draw();
 	
+	for (index in g_Robots)
+		g_Robots[index].draw();
 	for (index in g_Pyramids)
 		g_Pyramids[index].draw();
 	for (index in g_Cubes)

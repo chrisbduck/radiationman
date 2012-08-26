@@ -4,9 +4,12 @@
 
 var g_BGTexture;
 var g_LavaTexture;
+var g_WateryTexture;
 var g_PlayerTexture;
 var g_PlatformTexture;
+var g_RobotTexture;
 var g_Platforms = [];
+var g_Robots = [];
 
 // Pyramids
 var g_PyramidPositions = null;
@@ -777,6 +780,36 @@ function collideSphere(obj1, obj2)
 }
 
 //------------------------------------------------------------------------------
+// Robot
+//------------------------------------------------------------------------------
+function Robot(position)
+{
+	this.m_Texture = g_RobotTexture;
+	this.m_Position = position;
+	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
+}
+
+//------------------------------------------------------------------------------
+Robot.prototype.draw = function()
+{
+	this.m_Sprite.m_Position = this.m_Position;
+	//console.log('robot', this.m_Sprite);
+	this.m_Sprite.draw();
+};
+
+//------------------------------------------------------------------------------
+Robot.prototype.update = function(time_diff_sec)
+{
+	// Nothing yet
+};
+
+//------------------------------------------------------------------------------
+function addRobot(position)
+{
+	g_Robots = g_Robots.concat([new Robot(position)]);
+}
+
+//------------------------------------------------------------------------------
 // Misc
 //------------------------------------------------------------------------------
 function loadTextures()
@@ -786,6 +819,7 @@ function loadTextures()
 	g_WateryTexture = new Texture('data/watery.jpg');
 	g_PlayerTexture = new Texture('data/man.png');
 	g_PlatformTexture = new Texture('data/platform.png');
+	g_RobotTexture = new Texture('data/robot.png');
 	
 	g_TexturesLoadedCallback = initObjects;
 }
@@ -810,6 +844,8 @@ function initObjects()
 	addPlatform(0, 512 - 27, 512);
 	addPlatform(150, 350, 250);
 	g_Player = new Player(g_PlayerTexture, 0, 512 - 27 - 64 - 100);
+	
+	addRobot([300, 280]);
 	
 	// Hide the "loading" image
 	loading_img = document.getElementById("loading");
