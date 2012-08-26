@@ -81,7 +81,9 @@ function buildPyramid()
 	var normal_buf = createStaticFloatBuffer(normals, 3, 12);
 	
 	var pyramid = new Mesh(position_buf, null, uv_buf, normal_buf, gl.TRIANGLES);
-	pyramid.setTranslation([-1.5, 0.0, -7.0]);
+	var centre_pos = get3DPosFrom2D(100, 100);
+	pyramid.setTranslation(centre_pos);
+	pyramid.setScale(0.03);
 	pyramid.setRotation(0, [0, 1, 0], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setRotation(1, [0, 0, 1], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setTexture(g_WateryTexture);

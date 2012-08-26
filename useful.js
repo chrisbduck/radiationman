@@ -147,11 +147,10 @@ Texture.prototype.use = function(shader_prog)
 
 //------------------------------------------------------------------------------
 // Sets up a default projection matrix, with 45 degrees FOV, and near&far planes 0.1 & 100
-function getProjectionMatrix(shader_uniform)
+function getProjectionMatrix()
 {
 	var proj_matrix = mat4.create();
 	mat4.perspective(45, gl.m_ViewportWidth / gl.m_ViewportHeight, 0.1, 100.0, proj_matrix);
-	gl.uniformMatrix4fv(shader_uniform, false, proj_matrix);
 	return proj_matrix;
 }
 
@@ -167,6 +166,21 @@ function getPlusMinusRandom(min_val, max_val)
 	var val = getRandom(min_val, max_val);
 	val =  Math.random() < 0.5 ? -val : val;
 	return val;
+}
+
+//------------------------------------------------------------------------------
+function get3DPosFrom2D(desired_x, desired_y)
+{
+	// Scale the desired position into the projected buffer space
+	var scaled_x = -1.0 + desired_x * 2.0 / gl.m_ViewportWidth;
+	var scaled_y = -1.0 + desired_y * 2.0 / gl.m_ViewportHeight;
+	var pos = vec3.create([scaled_x, scaled_y, 1.0]);
+	
+	// Apply the inverse of the projection transformation to get a point in 3D space
+	var inv_proj_matrix = mat4.create();
+	mat4.inverse(g_ProjMatrix, inv_proj_matrix);
+	mat4.multiplyVec3(inv_proj_matrix, pos);
+	return pos;
 }
 
 //------------------------------------------------------------------------------

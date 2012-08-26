@@ -89,8 +89,8 @@
 	}
 </script>
 
-<!-- Test shaders -->
-<script id="test-vs" type="x-shader/x-vertex">
+<!-- Sprite shaders -->
+<script id="sprite-vs" type="x-shader/x-vertex">
 	attribute vec3	a_VertPos;
 	attribute vec2	a_VertUV;
 
@@ -104,7 +104,7 @@
 		v_UV = a_VertUV;
 	}
 </script>
-<script id="test-fs" type="x-shader/x-fragment">
+<script id="sprite-fs" type="x-shader/x-fragment">
 	precision mediump float;
 	varying vec2 v_UV;
 	uniform sampler2D u_Sampler;

@@ -34,6 +34,7 @@ function Mesh(positions, indices, uvs, normals, primitive_type)
 	this.m_Alpha = 1.0;
 	this.m_Texture = g_TestTexture;
 	this.m_ShaderProg = g_LitMeshProg;
+	this.m_Scale = 1.0;
 }
 
 //------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ Mesh.prototype.setTranslation = function(translation) { this.m_Translation = tra
 Mesh.prototype.setTexture = function(texture) { this.m_Texture = texture; };
 Mesh.prototype.setLighting = function(active) { this.m_Lighting = active; };
 Mesh.prototype.setAlpha = function(alpha) { this.m_Alpha = alpha; };
+Mesh.prototype.setScale = function(scale) { this.m_Scale = scale; };
 
 //------------------------------------------------------------------------------
 Mesh.prototype.setRotation = function(index, axis, deg_per_sec)
@@ -77,6 +79,7 @@ Mesh.prototype.draw = function()
 	mat4.rotate(model_view_matrix, rotation_rad, this.m_RotationAxis[0]);
 	rotation_rad = this.m_RotationDeg[1] * Math.PI / 180;
 	mat4.rotate(model_view_matrix, rotation_rad, this.m_RotationAxis[1]);
+	mat4.scale(model_view_matrix, [this.m_Scale, this.m_Scale, this.m_Scale]);
 	
 	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, g_ProjMatrix);
 	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, model_view_matrix);
@@ -155,7 +158,7 @@ function initShaders()
 								   "u_AmbientCol", "u_LightingDir", "u_LightingCol", "u_UseLighting",
 								   "u_Alpha"]);
 	
-	g_SpriteProg = getShaderProg("test-vs", "test-fs",
+	g_SpriteProg = getShaderProg("sprite-vs", "sprite-fs",
 								 ["a_VertPos", "a_VertUV",
 								  "u_WorldMatrix", "u_Sampler", "u_Col"]);
 }
@@ -207,9 +210,9 @@ function getShaderProg(vertex_shader_name, fragment_shader_name, properties)
 //------------------------------------------------------------------------------
 function initScene()
 {
+	g_ProjMatrix = getProjectionMatrix();
 	initShaders();
 	initObjects();
-	g_ProjMatrix = getProjectionMatrix();
 }
 
 //------------------------------------------------------------------------------
