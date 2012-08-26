@@ -457,9 +457,9 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	//
 	
 	if (this.m_Alive)
-		this.updateInput(time_diff_sec, x_input, jump_input);
+		updateInput(this, time_diff_sec, x_input, jump_input);
 	
-	this.updatePhysics(time_diff_sec);
+	updatePhysics(this, time_diff_sec);
 	this.updateCollisions(time_diff_sec);
 	
 	if (this.m_Alive)
@@ -467,85 +467,93 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 };
 
 //------------------------------------------------------------------------------
-Player.prototype.updateInput = function(time_diff_sec, x_input, jump_input)
+function updateInput(object, time_diff_sec, x_input, jump_input)
 {
 	if (x_input != 0)
 	{
-		//this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
-		this.m_AccelerationPPSPS[0] = this.m_XAccelPPSPS * x_input;
-		this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
+		object.m_AccelerationPPSPS[0] = object.m_XAccelPPSPS * x_input;
+		object.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
 	}
 	else
-		this.m_AccelerationPPSPS[0] = 0;
+		object.m_AccelerationPPSPS[0] = 0;
 	
-	if (this.m_IsOnPlatform)
+	if (object.m_IsOnPlatform)
 	{
 		// Jumping - just modify the speed directly
 		if (jump_input > 0)
 		{
-			if (!this.m_Jumping)	// ignore held keys
+			if (!object.m_Jumping)	// ignore held keys
 			{
-				this.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
-				this.m_Jumping = true;
+				object.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
+				object.m_Jumping = true;
 			}
 		}
 	}
 	else
-		this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
+		object.m_AccelerationPPSPS[1] = g_GravityPPSPS;
 	if (jump_input == 0)
-		this.m_Jumping = false;
+		object.m_Jumping = false;
 };
-	
+
 //------------------------------------------------------------------------------
-Player.prototype.updatePhysics = function(time_diff_sec)
+function updatePhysics(object, time_diff_sec)
 {
 	// Update velocity towards the target
-	this.m_VelocityPPS[0] += time_diff_sec * this.m_AccelerationPPSPS[0];
-	if (this.m_AccelerationPPSPS[0] != 0)
+	object.m_VelocityPPS[0] += time_diff_sec * object.m_AccelerationPPSPS[0];
+	if (object.m_AccelerationPPSPS[0] != 0)
 	{
-		if (this.m_AccelerationPPSPS[0] > 0)
+		if (object.m_AccelerationPPSPS[0] > 0)
 		{
-			if (this.m_VelocityPPS[0] >= this.m_XVelPPSTarget)
+			if (object.m_VelocityPPS[0] >= object.m_XVelPPSTarget)
 			{
-				this.m_VelocityPPS[0] = this.m_XVelPPSTarget;
-				this.m_AccelerationPPSPS[0] = 0;
+				object.m_VelocityPPS[0] = object.m_XVelPPSTarget;
+				object.m_AccelerationPPSPS[0] = 0;
 			}
 		}
 		else
 		{
-			if (this.m_VelocityPPS[0] <= -this.m_XVelPPSTarget)
+			if (object.m_VelocityPPS[0] <= -object.m_XVelPPSTarget)
 			{
-				this.m_VelocityPPS[0] = -this.m_XVelPPSTarget;
-				this.m_AccelerationPPSPS[0] = 0;
+				object.m_VelocityPPS[0] = -object.m_XVelPPSTarget;
+				object.m_AccelerationPPSPS[0] = 0;
 			}
 		}
 	}
 	else
 	{
 		// No X acceleration.  Decelerate automatically
-		if (this.m_VelocityPPS[0] > 0)
+		if (object.m_VelocityPPS[0] > 0)
 		{
-			this.m_VelocityPPS[0] -= time_diff_sec * this.m_XAccelPPSPS * DECELERATION_SCALE;
-			if (this.m_VelocityPPS[0] < 0)
-				this.m_VelocityPPS[0] = 0;
+			object.m_VelocityPPS[0] -= time_diff_sec * object.m_XAccelPPSPS * DECELERATION_SCALE;
+			if (object.m_VelocityPPS[0] < 0)
+				object.m_VelocityPPS[0] = 0;
 		}
-		else if (this.m_VelocityPPS[0] < 0)
+		else if (object.m_VelocityPPS[0] < 0)
 		{
-			this.m_VelocityPPS[0] += time_diff_sec * this.m_XAccelPPSPS * DECELERATION_SCALE;
-			if (this.m_VelocityPPS[0] > 0)
-				this.m_VelocityPPS[0] = 0;
+			object.m_VelocityPPS[0] += time_diff_sec * object.m_XAccelPPSPS * DECELERATION_SCALE;
+			if (object.m_VelocityPPS[0] > 0)
+				object.m_VelocityPPS[0] = 0;
 		}
 	}
 	
-	this.m_VelocityPPS[1] += time_diff_sec * this.m_AccelerationPPSPS[1];
+	object.m_VelocityPPS[1] += time_diff_sec * object.m_AccelerationPPSPS[1];
 	
 	//
 	// Position
 	//
 	
-	this.m_Position[0] += time_diff_sec * this.m_VelocityPPS[0];
-	this.m_Position[1] += time_diff_sec * this.m_VelocityPPS[1];
+	object.m_Position[0] += time_diff_sec * object.m_VelocityPPS[0];
+	object.m_Position[1] += time_diff_sec * object.m_VelocityPPS[1];
 };
+
+//------------------------------------------------------------------------------
+function collideWithPlatforms(object)
+{
+	object.m_Collided = [false, false, false, false];
+	for (index in g_Platforms)
+		collideRects(object, g_Platforms[index], true);
+	object.m_IsOnPlatform = object.m_Collided[3];	// rect bottom collision
+}
 
 //------------------------------------------------------------------------------
 Player.prototype.updateCollisions = function(time_diff_sec)
@@ -581,11 +589,7 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 	}
 	
 	// Collide the player with all platforms
-	
-	this.m_Collided = [false, false, false, false];
-	for (index in g_Platforms)
-		collideRects(this, g_Platforms[index], true);
-	this.m_IsOnPlatform = this.m_Collided[3];	// rect bottom collision
+	collideWithPlatforms(this);
 	
 	// Check for collisions with pyramids
 	var delete_indices = [];
@@ -784,9 +788,19 @@ function collideSphere(obj1, obj2)
 //------------------------------------------------------------------------------
 function Robot(position)
 {
+	var x = position[0];
+	var y = position[1];
 	this.m_Texture = g_RobotTexture;
-	this.m_Position = position;
+	this.m_Position = [x, y];
+	this.m_PrevPosition = [x, y];
+	this.m_VelocityPPS = [0, 0];
+	this.m_AccelerationPPSPS = [0, 0];
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
+	this.m_XAccelPPSPS = 450;
+	this.m_XVelPPSTarget = 180;
+	this.m_CollideRect = [14, 12, 51, 63];
+	this.m_Collided = [false, false, false, false];
+	this.m_IsOnPlatform = false;
 }
 
 //------------------------------------------------------------------------------
@@ -800,7 +814,13 @@ Robot.prototype.draw = function()
 //------------------------------------------------------------------------------
 Robot.prototype.update = function(time_diff_sec)
 {
-	// Nothing yet
+	updateInput(this, time_diff_sec, 0, 0);
+	updatePhysics(this, time_diff_sec);
+	collideWithPlatforms(this);
+	
+	// Store positions for next time
+	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
+	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
 };
 
 //------------------------------------------------------------------------------
@@ -850,6 +870,11 @@ function initObjects()
 	// Hide the "loading" image
 	loading_img = document.getElementById("loading");
 	loading_img.hidden = true;
+	
+	// Show the status text
+	status_items = document.getElementsByClassName("status");
+	for (index in status_items)
+		status_items[index].hidden = false;
 	
 	g_Running = true;
 }
