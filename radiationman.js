@@ -15,6 +15,7 @@ var g_Pyramid;
 var g_ProjMatrix;
 var g_Sprites = [];
 var g_GravityPPSPS = 150;
+var g_Running = false;
 
 //------------------------------------------------------------------------------
 // Mesh
@@ -212,7 +213,7 @@ function initScene()
 {
 	g_ProjMatrix = getProjectionMatrix();
 	initShaders();
-	initObjects();
+	loadTextures();		// initObjects is called via callback when this finishes
 }
 
 //------------------------------------------------------------------------------

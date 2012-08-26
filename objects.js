@@ -2,8 +2,10 @@
 // Object initialisation
 //
 
+var g_BGTexture;
 var g_TestTexture;
 var g_LavaTexture;
+var g_PlayerTexture;
 var g_PlatformTexture;
 var g_Platforms = [];
 
@@ -235,7 +237,7 @@ function addGlobalSprite(texture, position)
 //------------------------------------------------------------------------------
 function Sprite(texture, position)
 {
-	if (!Sprite.prototype.m_Positions)
+	if (!Sprite.prototype.m_VertPositions)
 	{
 		// Positions
 		positions = [
@@ -381,9 +383,9 @@ function addPlatform(x, y, width)
 //------------------------------------------------------------------------------
 // Player
 //------------------------------------------------------------------------------
-function Player(x, y)
+function Player(texture, x, y)
 {
-	this.m_Texture = new Texture('data/man.png');
+	this.m_Texture = texture;
 	this.m_Position = [x, y];
 	this.m_PrevPosition = [x, y];
 	this.m_VelocityPPS = [0, 0];
@@ -608,23 +610,35 @@ function collideRects(adjust_obj, other_obj, do_adjust)
 //------------------------------------------------------------------------------
 // Misc
 //------------------------------------------------------------------------------
-function initObjects()
+function loadTextures()
 {
 	g_TestTexture = new Texture('sports-image.jpg');
-	var bg_texture = new Texture('data/sort-of-cloudy.jpg');
+	g_BGTexture = new Texture('data/sort-of-cloudy.jpg');
 	g_LavaTexture = new Texture('data/collectable.jpg');
 	g_WateryTexture = new Texture('data/watery.jpg');
-	var player_texture = new Texture('data/man.png');
+	g_PlayerTexture = new Texture('data/man.png');
 	g_PlatformTexture = new Texture('data/platform.png');
 	
+	g_TexturesLoadedCallback = initObjects;
+}
+
+//------------------------------------------------------------------------------
+function initObjects()
+{
 	g_Pyramid = buildPyramid();
 	g_Cube = buildCube();
 	
-	addGlobalSprite(bg_texture, [0, 0]);
+	addGlobalSprite(g_BGTexture, [0, 0]);
 	
 	addPlatform(0, 512 - 27, 512);
 	addPlatform(100, 350, 250);
-	g_Player = new Player(0, 512 - 27 - 64 - 100);
+	g_Player = new Player(g_PlayerTexture, 0, 512 - 27 - 64 - 100);
+	
+	// Hide the "loading" image
+	loading_img = document.getElementById("loading");
+	loading_img.hidden = true;
+	
+	g_Running = true;
 }
 
 //------------------------------------------------------------------------------

@@ -8,6 +8,7 @@ var g_LastUpdateTimeSec;
 var g_Textures = [];
 var g_NumLoadingTextures = 0;		// >0 when a texture is loading
 var g_TexInitialisedCount = 0;
+var g_TexturesLoadedCallback;
 
 //------------------------------------------------------------------------------
 function initGL(canvas)
@@ -123,6 +124,12 @@ function handleLoadedTexture()
 		for (index = g_TexInitialisedCount; index < init_up_to; ++index)
 			g_Textures[index].init();
 		g_TexInitialisedCount = init_up_to;
+		
+		// Assuming nothing strange has happened (other texture loads being started in another thread?),
+		// activate the callback now
+		console.assert(g_NumLoadingTextures == 0);
+		if (g_TexturesLoadedCallback !== null)
+			g_TexturesLoadedCallback();
 	}
 }
 
@@ -188,8 +195,8 @@ function updateScene()
 {
 	requestAnimFrame(updateScene);
 	
-	// Don't do anything until all textures are loaded
-	if (g_NumLoadingTextures > 0)
+	// Don't do anything until we're up and running, with all textures loaded, etc
+	if (!g_Running)
 		return;
 	
 	// Update time
