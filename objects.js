@@ -62,23 +62,26 @@ function buildPyramid()
 	var uv_buf = createStaticFloatBuffer(uvs, 2, 12);
 	
 	// Normals
+	// In case I need to calculate these again, it's pretty simple:
+	// vec1 = vert2 - vert1;  vec2 = vert3 - vert2
+	// normal = normalise(cross(vec1, vec2))
 	var normals = [
 		// Front face
-		0.0, 0.5, 0.7071,
-		0.0, 0.5, 0.7071,
-		0.0, 0.5, 0.7071,
-		// Right face
-		0.7071, 0.5, 0.0,
-		0.7071, 0.5, 0.0,
-		0.7071, 0.5, 0.0,
-		// Back face
-		0.0, 0.5, -0.7071,
-		0.0, 0.5, -0.7071,
-		0.0, 0.5, -0.7071,
-		// Left face
-		-0.7071, 0.5, 0.0,
-		-0.7071, 0.5, 0.0,
-		-0.7071, 0.5, 0.0,
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 1.0,
+		0.0, 0.0, 1.0,
+		// Right-back face
+		-0.8133, -0.475, -0.3359,
+		-0.8133, -0.475, -0.3359,
+		-0.8133, -0.475, -0.3359,
+		// Left-back face
+		0.8133, -0.475, -0.3359,
+		0.8133, -0.475, -0.3359,
+		0.8133, -0.475, -0.3359,
+		// Bottom face
+		0.0, 0.9434, -0.3231,
+		0.0, 0.9434, -0.3231,
+		0.0, 0.9434, -0.3231,
 	];
 	var normal_buf = createStaticFloatBuffer(normals, 3, 12);
 	
@@ -89,8 +92,9 @@ function buildPyramid()
 	pyramid.setRotation(0, [0, 1, 0], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setRotation(1, [0, 0, 1], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setTexture(g_WateryTexture);
-	pyramid.setLighting(false);
-	pyramid.setAlpha(0.4);
+	pyramid.setLighting(true);
+	pyramid.setLightingLevel(0.7, 0.1);
+	pyramid.setAlpha(1.0);
 	return pyramid;
 }
 
@@ -216,11 +220,14 @@ function buildCube()
 	normal_buf = createStaticFloatBuffer(normals, 3, 24);
 	
 	var cube = new Mesh(position_buf, index_buf, uv_buf, normal_buf, gl.TRIANGLES);
-	cube.setTranslation([1.5, 0.0, -7.0]);
+	var centre = get3DPosFrom2D(400, 100);
+	cube.setTranslation(centre);
+	cube.setScale(0.02);
 	cube.setRotation(0, [1, 0, 0], getRandom(90.0, 180.0));
 	cube.setRotation(1, [0, 1, 0], getRandom(90.0, 180.0));
 	cube.setTexture(g_LavaTexture);
 	cube.setLighting(false);
+	cube.setLightingLevel(0.6, 0.4);
 	cube.setAlpha(0.7);
 	return cube;
 }
@@ -614,7 +621,7 @@ function loadTextures()
 {
 	g_TestTexture = new Texture('sports-image.jpg');
 	g_BGTexture = new Texture('data/sort-of-cloudy.jpg');
-	g_LavaTexture = new Texture('data/collectable.jpg');
+	g_LavaTexture = new Texture('data/collectable-sm.png');
 	g_WateryTexture = new Texture('data/watery.jpg');
 	g_PlayerTexture = new Texture('data/man.png');
 	g_PlatformTexture = new Texture('data/platform.png');

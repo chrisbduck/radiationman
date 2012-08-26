@@ -32,6 +32,8 @@ function Mesh(positions, indices, uvs, normals, primitive_type)
 	this.m_Translation = [0, 0];
 	this.m_RotationAxis = [null, null];
 	this.m_Lighting = true;
+	this.m_Ambient = 0.5;
+	this.m_Lit = 0.5;
 	this.m_Alpha = 1.0;
 	this.m_Texture = g_TestTexture;
 	this.m_ShaderProg = g_LitMeshProg;
@@ -42,6 +44,7 @@ function Mesh(positions, indices, uvs, normals, primitive_type)
 Mesh.prototype.setTranslation = function(translation) { this.m_Translation = translation; };
 Mesh.prototype.setTexture = function(texture) { this.m_Texture = texture; };
 Mesh.prototype.setLighting = function(active) { this.m_Lighting = active; };
+Mesh.prototype.setLightingLevel = function(ambient, lit) { this.m_Ambient = ambient; this.m_Lit = lit; }
 Mesh.prototype.setAlpha = function(alpha) { this.m_Alpha = alpha; };
 Mesh.prototype.setScale = function(scale) { this.m_Scale = scale; };
 
@@ -114,11 +117,11 @@ Mesh.prototype.draw = function()
 		
 		if (this.m_Lighting)
 		{
-			gl.uniform3f(prog.u_AmbientCol, 0.2, 0.2, 0.2);
-			var lighting_dir = vec3.create([-1.0, 1.0, 0.0]);
-			vec3.normalize(lighting_dir);
+			gl.uniform3f(prog.u_AmbientCol, this.m_Ambient, this.m_Ambient, this.m_Ambient);
+			var lighting_dir = vec3.create([0.0, -1.0, 0.0]);
+			//vec3.normalize(lighting_dir);
 			gl.uniform3fv(prog.u_LightingDir, lighting_dir);
-			gl.uniform3f(prog.u_LightingCol, 0.8, 0.8, 0.8);
+			gl.uniform3f(prog.u_LightingCol, this.m_Lit, this.m_Lit, this.m_Lit);
 		}
 		
 		if (this.m_Alpha < 1.0)
