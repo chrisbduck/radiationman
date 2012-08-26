@@ -234,9 +234,17 @@ var KEY_SUPER = 91;
 var KEY_P = 80;
 var KEY_COMMA = 188;
 var KEY_FULL_STOP = 190;
+var KEY_ENTER = 13;
 
 function updateObjects(time_diff_sec)
 {
+	if (!g_Player.m_Alive && g_PressedKeys[KEY_ENTER])
+	{
+		// Restart
+		destroyObjects();
+		initObjects();
+	}
+	
 	if (g_PressedKeys[KEY_COMMA])
 		time_diff_sec *= 0.5;
 	else if (g_PressedKeys[KEY_FULL_STOP])

@@ -668,7 +668,7 @@ Player.prototype.updateStatus = function(time_diff_sec)
 		else if (this.m_Rads < 100)	status = "Dying";
 		else
 		{
-			status = "Dead";
+			status = "Dead - Enter to restart";
 			this.m_Alive = false;
 		}
 		
@@ -959,7 +959,7 @@ function initObjects()
 		addPlatform(platform[0], platform[1], platform[2]);
 	}
 	
-	g_Player = new Player(0, 512 - 27 - 64 - 100);
+	g_Player = new Player(0, 512 - 27 - 65);
 	
 	for (index in robot_positions)
 		addRobot(robot_positions[index]);
@@ -974,6 +974,16 @@ function initObjects()
 		status_items[index].hidden = false;
 	
 	g_Running = true;
+}
+
+//------------------------------------------------------------------------------
+function destroyObjects()
+{
+	g_Player = null;
+	g_Pyramids = [];
+	g_Cubes = [];
+	g_Robots = [];
+	g_Platforms = [];
 }
 
 //------------------------------------------------------------------------------
