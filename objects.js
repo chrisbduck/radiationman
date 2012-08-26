@@ -442,8 +442,11 @@ function Player(x, y)
 	this.m_TouchingRobots = 0;
 	this.m_Mutation = 0;
 	this.m_Alive = true;
+	this.m_Won = false;
 	this.hitScreenXEdge = doNothing;
 	this.hitScreenYEdge = doNothing;
+	this.updateRadsDisplay();
+	this.updateMutation();
 }
 
 //------------------------------------------------------------------------------
@@ -632,7 +635,8 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 	for (index in g_Cubes)
 		if (collideSphere(this, g_Cubes[index]))
 		{
-			this.advanceMutation();
+			this.m_Mutation++;
+			this.updateMutation();
 			delete_indices = delete_indices.concat([index]);
 		}
 	delete_indices.reverse();
@@ -660,23 +664,29 @@ Player.prototype.updateStatus = function(time_diff_sec)
 	if (new_rads_display != this.m_RadsDisplay)
 	{
 		this.m_RadsDisplay = new_rads_display;
-		document.getElementById("rads").innerText = "Rads: " + new_rads_display;
-		
-			if (this.m_Rads < 25)	status = "OK";
-		else if (this.m_Rads < 50)	status = "Sick";
-		else if (this.m_Rads < 75)	status = "Very Sick";
-		else if (this.m_Rads < 100)	status = "Dying";
-		else
-		{
-			status = "Dead - Enter to restart";
-			this.m_Alive = false;
-		}
-		
-		document.getElementById("notes").innerText = status;
-		
-		if (!this.m_Alive)
-			this.die();
+		this.updateRadsDisplay();
 	}
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.updateRadsDisplay = function()
+{
+	document.getElementById("rads").innerText = "Rads: " + this.m_RadsDisplay;
+	
+		if (this.m_Rads < 25)	status = "OK";
+	else if (this.m_Rads < 50)	status = "Sick";
+	else if (this.m_Rads < 75)	status = "Very Sick";
+	else if (this.m_Rads < 100)	status = "Dying";
+	else
+	{
+		status = "Dead - Enter to restart";
+		this.m_Alive = false;
+	}
+	
+	document.getElementById("notes").innerText = status;
+	
+	if (!this.m_Alive)
+		this.die();
 };
 
 //------------------------------------------------------------------------------
@@ -687,11 +697,16 @@ Player.prototype.die = function()
 };
 
 //------------------------------------------------------------------------------
-Player.prototype.advanceMutation = function()
+Player.prototype.win = function()
 {
-	this.m_Mutation++;
-	
-	var mutation_strings = ["normal", "slight", "moderate", "advanced", "evolved"];
+	document.getElementById("notes").innerText = "You have reached a new state of being!";
+	this.m_Won = true;
+}
+
+//------------------------------------------------------------------------------
+Player.prototype.updateMutation = function()
+{
+	var mutation_strings = ["normal", "moderate", "advanced", "evolved"];
 	var index = (this.m_Mutation < mutation_strings.length) ? this.m_Mutation : (mutation_strings.length - 1);
 	var text = "Mutation: " + mutation_strings[index];
 	
@@ -700,6 +715,10 @@ Player.prototype.advanceMutation = function()
 	this.m_Sprite.m_Texture = this.m_Texture;
 	
 	document.getElementById("mutation").innerText = text;
+	
+	// Winning just means fully evolving for now
+	if (index == mutation_strings.length - 1)
+		this.win();
 };
 
 //------------------------------------------------------------------------------

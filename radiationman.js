@@ -238,12 +238,16 @@ var KEY_ENTER = 13;
 
 function updateObjects(time_diff_sec)
 {
-	if (!g_Player.m_Alive && g_PressedKeys[KEY_ENTER])
+	if ((!g_Player.m_Alive || g_Player.m_Won) && g_PressedKeys[KEY_ENTER])
 	{
 		// Restart
 		destroyObjects();
 		initObjects();
 	}
+	
+	// Turn off updates when the player wins
+	if (g_Player.m_Won)
+		return;
 	
 	if (g_PressedKeys[KEY_COMMA])
 		time_diff_sec *= 0.5;
