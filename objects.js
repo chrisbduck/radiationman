@@ -841,6 +841,7 @@ Robot.prototype.update = function(time_diff_sec)
 	
 	updateScreenCollisions(this);
 	collideWithPlatforms(this);
+	this.watchFloor();
 	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
@@ -851,6 +852,25 @@ Robot.prototype.update = function(time_diff_sec)
 Robot.prototype.reverseDirection = function()
 {
 	this.m_DesiredXDir = -this.m_DesiredXDir;
+};
+
+//------------------------------------------------------------------------------
+Robot.prototype.watchFloor = function()
+{
+	if (!this.m_IsOnPlatform || this.m_AbovePlatform === null)
+		return;
+	// Check the platform we're on to see if we're about to fall off it
+	var platform = this.m_AbovePlatform;
+	if (this.m_DesiredXDir < 0)
+	{
+		if (this.m_Position[0] + this.m_CollideRect[0] < platform.m_Position[0])
+			this.reverseDirection();
+	}
+	else
+	{
+		if (this.m_Position[0] + this.m_CollideRect[2] > platform.m_Position[0] + platform.m_Width)
+			this.reverseDirection();
+	}
 };
 
 //------------------------------------------------------------------------------
