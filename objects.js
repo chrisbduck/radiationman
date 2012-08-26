@@ -82,8 +82,8 @@ function buildPyramid()
 	
 	var pyramid = new Mesh(position_buf, null, uv_buf, normal_buf, gl.TRIANGLES);
 	pyramid.setTranslation([-1.5, 0.0, -7.0]);
-	pyramid.setRotation(0, [0, 1, 0], 90.0);
-	pyramid.setRotation(1, [0, 0, 1], 60.0);
+	pyramid.setRotation(0, [0, 1, 0], getPlusMinusRandom(45.0, 90.0));
+	pyramid.setRotation(1, [0, 0, 1], getPlusMinusRandom(45.0, 90.0));
 	pyramid.setTexture(g_WateryTexture);
 	pyramid.setLighting(false);
 	pyramid.setAlpha(0.4);
@@ -213,8 +213,8 @@ function buildCube()
 	
 	var cube = new Mesh(position_buf, index_buf, uv_buf, normal_buf, gl.TRIANGLES);
 	cube.setTranslation([1.5, 0.0, -7.0]);
-	cube.setRotation(0, [1, 0, 0], 75.0);
-	cube.setRotation(1, [0, 1, 0], 110.0);
+	cube.setRotation(0, [1, 0, 0], getRandom(90.0, 180.0));
+	cube.setRotation(1, [0, 1, 0], getRandom(90.0, 180.0));
 	cube.setTexture(g_LavaTexture);
 	cube.setLighting(false);
 	cube.setAlpha(0.7);

@@ -93,3 +93,12 @@ Tasks:
 			- Need at least three varieties
 		- Platforms
 		- Background textures
+
+L/R movement done.  Next:
+	- Jumping
+	- Collisions with platforms
+	- Scaling for collectables
+	- Collection
+	- Health counter
+	- Enemies, etc
+	

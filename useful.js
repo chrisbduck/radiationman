@@ -156,6 +156,20 @@ function getProjectionMatrix(shader_uniform)
 }
 
 //------------------------------------------------------------------------------
+function getRandom(min_val, max_val)
+{
+	return min_val + Math.random() * (max_val - min_val);
+}
+
+//------------------------------------------------------------------------------
+function getPlusMinusRandom(min_val, max_val)
+{
+	var val = getRandom(min_val, max_val);
+	val =  Math.random() < 0.5 ? -val : val;
+	return val;
+}
+
+//------------------------------------------------------------------------------
 function updateScene()
 {
 	requestAnimFrame(updateScene);
