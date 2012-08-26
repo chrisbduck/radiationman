@@ -409,6 +409,9 @@ function addPlatform(x, y, width)
 //------------------------------------------------------------------------------
 // Player
 //------------------------------------------------------------------------------
+
+var RADS_PER_SEC = 1.0;
+
 function Player(texture, x, y)
 {
 	this.m_Texture = texture;
@@ -423,6 +426,10 @@ function Player(texture, x, y)
 	this.m_Collided = [false, false, false, false];		// left, top, right, bottom
 	this.m_IsOnPlatform = false;
 	this.m_Jumping = false;
+	this.m_Rads = 0.0;
+	this.m_RadsDisplay = 0;
+	this.m_Mutation = 0;
+	this.m_Alive = true;
 }
 
 //------------------------------------------------------------------------------
@@ -445,31 +452,34 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	// Input & acceleration
 	//
 	
-	if (x_input != 0)
+	if (this.m_Alive)
 	{
-		//this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
-		this.m_AccelerationPPSPS[0] = this.m_XAccelPPSPS * x_input;
-		this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
-	}
-	else
-		this.m_AccelerationPPSPS[0] = 0;
-	
-	if (this.m_IsOnPlatform)
-	{
-		// Jumping - just modify the speed directly
-		if (jump_input > 0)
+		if (x_input != 0)
 		{
-			if (!this.m_Jumping)	// ignore held keys
+			//this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
+			this.m_AccelerationPPSPS[0] = this.m_XAccelPPSPS * x_input;
+			this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
+		}
+		else
+			this.m_AccelerationPPSPS[0] = 0;
+		
+		if (this.m_IsOnPlatform)
+		{
+			// Jumping - just modify the speed directly
+			if (jump_input > 0)
 			{
-				this.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
-				this.m_Jumping = true;
+				if (!this.m_Jumping)	// ignore held keys
+				{
+					this.m_VelocityPPS[1] = -JUMP_IMPULSE_PPS;
+					this.m_Jumping = true;
+				}
 			}
 		}
+		else
+			this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
+		if (jump_input == 0)
+			this.m_Jumping = false;
 	}
-	else
-		this.m_AccelerationPPSPS[1] = g_GravityPPSPS;
-	if (jump_input == 0)
-		this.m_Jumping = false;
 	
 	// 
 	// Velocity
@@ -534,6 +544,40 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
 	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
+	
+	// Update rads
+	if (this.m_Alive)
+	{
+		this.m_Rads += time_diff_sec * RADS_PER_SEC;
+		var new_rads_display = Math.floor(this.m_Rads);
+		if (new_rads_display != this.m_RadsDisplay)
+		{
+			this.m_RadsDisplay = new_rads_display;
+			document.getElementById("rads").innerText = "Rads: " + new_rads_display;
+			
+				if (this.m_Rads < 25)	status = "OK";
+			else if (this.m_Rads < 50)	status = "Sick";
+			else if (this.m_Rads < 75)	status = "Very Sick";
+			else if (this.m_Rads < 100)	status = "Dying";
+			else
+			{
+				status = "Dead";
+				this.m_Alive = false;
+			}
+			
+			document.getElementById("notes").innerText = status;
+			
+			if (!this.m_Alive)
+				this.die();
+		}
+	}
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.die = function()
+{
+	// Incredibly cheap death animation: turn the character upside-down :)
+	this.m_Sprite.m_Scale[1] = -1;
 };
 
 //------------------------------------------------------------------------------
