@@ -5,7 +5,7 @@
 var g_BGTexture;
 var g_LavaTexture;
 var g_WateryTexture;
-var g_PlayerTexture;
+var g_PlayerTextures;
 var g_PlatformTexture;
 var g_RobotTexture;
 var g_Platforms = [];
@@ -422,9 +422,9 @@ function addPlatform(x, y, width)
 
 var RADS_PER_SEC = 1.0;
 
-function Player(texture, x, y)
+function Player(x, y)
 {
-	this.m_Texture = texture;
+	this.m_Texture = g_PlayerTextures[0];
 	this.m_Position = [x, y];
 	this.m_PrevPosition = [x, y];
 	this.m_VelocityPPS = [0, 0];
@@ -688,6 +688,10 @@ Player.prototype.advanceMutation = function()
 	var index = (this.m_Mutation < mutation_strings.length) ? this.m_Mutation : (mutation_strings.length - 1);
 	var text = "Mutation: " + mutation_strings[index];
 	
+	index = Math.min(index, g_PlayerTextures.length - 1);
+	this.m_Texture = g_PlayerTextures[index];
+	this.m_Sprite.m_Texture = this.m_Texture;
+	
 	document.getElementById("mutation").innerText = text;
 };
 
@@ -907,7 +911,8 @@ function loadTextures()
 	g_BGTexture = new Texture('data/sort-of-cloudy.jpg');
 	g_LavaTexture = new Texture('data/collectable-sm.png');
 	g_WateryTexture = new Texture('data/watery.jpg');
-	g_PlayerTexture = new Texture('data/man.png');
+	g_PlayerTextures = [new Texture('data/man.png'), new Texture('data/mut1.png'),
+						new Texture('data/mut2.png'), new Texture('data/mut3.png')];
 	g_PlatformTexture = new Texture('data/platform.png');
 	g_RobotTexture = new Texture('data/robot.png');
 	
@@ -933,7 +938,7 @@ function initObjects()
 	
 	addPlatform(0, 512 - 27, 512);
 	addPlatform(150, 350, 250);
-	g_Player = new Player(g_PlayerTexture, 0, 512 - 27 - 64 - 100);
+	g_Player = new Player(0, 512 - 27 - 64 - 100);
 	
 	addRobot([300, 280]);
 	
