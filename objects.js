@@ -6,6 +6,7 @@ var g_BGTexture;
 var g_LavaTexture;
 var g_WateryTexture;
 var g_PlayerTextures;
+var g_PlayerDeadTexture;
 var g_PlatformTexture;
 var g_RobotTexture;
 var g_Platforms = [];
@@ -642,10 +643,7 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 	this.m_TouchingRobots = 0;
 	for (index in g_Robots)
 		if (collideRects(this, g_Robots[index]))
-		{
 			this.m_TouchingRobots++;
-			console.log('I touched a robot');
-		}
 	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
@@ -684,8 +682,8 @@ Player.prototype.updateStatus = function(time_diff_sec)
 //------------------------------------------------------------------------------
 Player.prototype.die = function()
 {
-	// Incredibly cheap death animation: turn the character upside-down :)
-	this.m_Sprite.m_Scale[1] = -1;
+	this.m_Texture = g_PlayerDeadTexture;
+	this.m_Sprite.m_Texture = g_PlayerDeadTexture;
 };
 
 //------------------------------------------------------------------------------
@@ -924,6 +922,7 @@ function loadTextures()
 	g_WateryTexture = new Texture('data/watery.jpg');
 	g_PlayerTextures = [new Texture('data/man.png'), new Texture('data/mut1.png'),
 						new Texture('data/mut2.png'), new Texture('data/mut3.png')];
+	g_PlayerDeadTexture = new Texture('data/dead.png');
 	g_PlatformTexture = new Texture('data/platform.png');
 	g_RobotTexture = new Texture('data/robot.png');
 	
