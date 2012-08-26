@@ -547,6 +547,36 @@ Player.prototype.updatePhysics = function(time_diff_sec)
 //------------------------------------------------------------------------------
 Player.prototype.updateCollisions = function(time_diff_sec)
 {
+	// Make sure the player stays on screen
+	var min_x = -this.m_CollideRect[0];
+	var max_x = gl.m_ViewportWidth - this.m_CollideRect[2];
+	if (this.m_Position[0] < min_x)
+	{
+		this.m_Position[0] = min_x;
+		if (this.m_VelocityPPS[0] < 0)
+			this.m_VelocityPPS[0] = 0;
+	}
+	else if (this.m_Position[0] > max_x)
+	{
+		this.m_Position[0] = max_x;
+		if (this.m_VelocityPPS[0] > 0)
+			this.m_VelocityPPS[0] = 0;
+	}
+	var min_y = -this.m_CollideRect[1];
+	var max_y = gl.m_ViewportHeight - this.m_CollideRect[3];
+	if (this.m_Position[1] < min_y)
+	{
+		this.m_Position[1] = min_y;
+		if (this.m_VelocityPPS[1] < 0)
+			this.m_VelocityPPS[1] = 0;
+	}
+	else if (this.m_Position[1] > max_y)
+	{
+		this.m_Position[1] = max_y;
+		if (this.m_VelocityPPS[1] > 0)
+			this.m_VelocityPPS[1] = 0;
+	}
+	
 	// Collide the player with all platforms
 	
 	this.m_Collided = [false, false, false, false];
@@ -565,6 +595,18 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 	delete_indices.reverse();
 	for (index in delete_indices)
 		g_Pyramids.splice(delete_indices[index], 1);
+	
+	// Check for collisions with cubes
+	delete_indices = [];
+	for (index in g_Cubes)
+		if (collideSphere(this, g_Cubes[index]))
+		{
+			this.advanceMutation();
+			delete_indices = delete_indices.concat([index]);
+		}
+	delete_indices.reverse();
+	for (index in delete_indices)
+		g_Cubes.splice(delete_indices[index], 1);
 	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
@@ -604,6 +646,18 @@ Player.prototype.die = function()
 {
 	// Incredibly cheap death animation: turn the character upside-down :)
 	this.m_Sprite.m_Scale[1] = -1;
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.advanceMutation = function()
+{
+	this.m_Mutation++;
+	
+	var mutation_strings = ["normal", "slight", "moderate", "advanced", "evolved"];
+	var index = (this.m_Mutation < mutation_strings.length) ? this.m_Mutation : (mutation_strings.length - 1);
+	var text = "Mutation: " + mutation_strings[index];
+	
+	document.getElementById("mutation").innerText = text;
 };
 
 //------------------------------------------------------------------------------
