@@ -376,8 +376,11 @@ function Player(x, y)
 {
 	this.m_Texture = new Texture('data/man.png');
 	this.m_Position = [x, y];
+	this.m_VelocityPPS = [0, 0];
+	this.m_AccelerationPPSPS = [0, 0];
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
-	this.m_MaxXSpeedPPS = 120;	// pixels per second
+	this.m_XAccelPPSPS = 300;
+	this.m_XVelPPSTarget = 120;
 }
 
 //------------------------------------------------------------------------------
@@ -395,9 +398,55 @@ Player.prototype.update = function(time_diff_sec, x_input, jump_input)
 	
 	if (x_input != 0)
 	{
-		this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
+		//this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
+		this.m_AccelerationPPSPS[0] = this.m_XAccelPPSPS * x_input;
 		this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
 	}
+	else
+		this.m_AccelerationPPSPS[0] = 0;
+	
+	// Update velocity towards the target
+	this.m_VelocityPPS[0] += time_diff_sec * this.m_AccelerationPPSPS[0];
+	if (this.m_AccelerationPPSPS[0] != 0)
+	{
+		if (this.m_AccelerationPPSPS[0] > 0)
+		{
+			if (this.m_VelocityPPS[0] >= this.m_XVelPPSTarget)
+			{
+				this.m_VelocityPPS[0] = this.m_XVelPPSTarget;
+				this.m_AccelerationPPSPS[0] = 0;
+			}
+		}
+		else
+		{
+			if (this.m_VelocityPPS[0] <= -this.m_XVelPPSTarget)
+			{
+				this.m_VelocityPPS[0] = -this.m_XVelPPSTarget;
+				this.m_AccelerationPPSPS[0] = 0;
+			}
+		}
+	}
+	else
+	{
+		// No X acceleration.  Decelerate automatically
+		if (this.m_VelocityPPS[0] > 0)
+		{
+			this.m_VelocityPPS[0] -= time_diff_sec * this.m_XAccelPPSPS;
+			if (this.m_VelocityPPS[0] < 0)
+				this.m_VelocityPPS[0] = 0;
+		}
+		else if (this.m_VelocityPPS[0] < 0)
+		{
+			this.m_VelocityPPS[0] += time_diff_sec * this.m_XAccelPPSPS;
+			if (this.m_VelocityPPS[0] > 0)
+				this.m_VelocityPPS[0] = 0;
+		}
+	}
+	
+	this.m_VelocityPPS[1] += time_diff_sec * this.m_AccelerationPPSPS[1];
+	
+	this.m_Position[0] += time_diff_sec * this.m_VelocityPPS[0];
+	this.m_Position[1] += time_diff_sec * this.m_VelocityPPS[1];
 };
 
 //------------------------------------------------------------------------------

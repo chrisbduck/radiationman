@@ -2,6 +2,8 @@
 // Radiation Man game script file
 // By Chris Bevan, 25/8/2012, for Ludum Dare 24
 //
+// In all cases, PPS = pixels per second (velocity), and PPSPS = PPS per second (acceleration)
+//
 
 var gl;
 var g_LastUpdateTimeSec = null;
@@ -12,6 +14,7 @@ var g_Cube;
 var g_Pyramid;
 var g_ProjMatrix;
 var g_Sprites = [];
+var g_GravityPPSPS = 10;
 
 //------------------------------------------------------------------------------
 // Mesh
