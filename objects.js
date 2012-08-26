@@ -5,7 +5,7 @@
 var g_TestTexture;
 var g_LavaTexture;
 var g_PlatformTexture;
-var g_Platform;
+var g_Platforms = [];
 
 //------------------------------------------------------------------------------
 // Pyramid
@@ -263,6 +263,7 @@ function Sprite(texture, position)
 	this.m_Width = texture.image.width;
 	this.m_Height = texture.image.height;
 	this.m_Position = new Float32Array(position);
+	this.m_Scale = [1, 1];
 	this.m_ShaderProg = g_SpriteProg;
 	this.m_Colour = new Float32Array([1.0, 1.0, 1.0, 1.0]);
 }
@@ -305,7 +306,8 @@ Sprite.prototype.draw = function()
 	var yoff =  1 - (height + 2 * y) / gl.m_ViewportHeight;		// flip y so 0 is at the top
 	
 	mat4.translate(world_matrix, [xoff, yoff, 0]);
-	mat4.scale(world_matrix, [width / gl.m_ViewportWidth, height / gl.m_ViewportHeight, 1]);
+	mat4.scale(world_matrix, [this.m_Scale[0] * width / gl.m_ViewportWidth,
+							  this.m_Scale[1] * height / gl.m_ViewportHeight, 1]);
 	
 	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, world_matrix);
 	
@@ -362,6 +364,12 @@ Platform.prototype.draw = function()
 };
 
 //------------------------------------------------------------------------------
+function addPlatform(x, y, width)
+{
+	g_Platforms = g_Platforms.concat([new Platform(x, y, width)]);
+}
+
+//------------------------------------------------------------------------------
 // Player
 //------------------------------------------------------------------------------
 function Player(x, y)
@@ -369,6 +377,7 @@ function Player(x, y)
 	this.m_Texture = new Texture('data/man.png');
 	this.m_Position = [x, y];
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
+	this.m_MaxXSpeedPPS = 120;	// pixels per second
 }
 
 //------------------------------------------------------------------------------
@@ -376,7 +385,20 @@ Player.prototype.draw = function()
 {
 	this.m_Sprite.setPosition(this.m_Position);
 	this.m_Sprite.draw();
-}
+};
+
+//------------------------------------------------------------------------------
+Player.prototype.update = function(time_diff_sec, x_input, jump_input)
+{
+	// x_input = 0, -1, or 1
+	// jump_input = 0 or 1
+	
+	if (x_input != 0)
+	{
+		this.m_Position[0] += time_diff_sec * this.m_MaxXSpeedPPS * x_input;
+		this.m_Sprite.m_Scale[0] = (x_input < 0) ? -1 : 1;	// flip horizontally when going left
+	}
+};
 
 //------------------------------------------------------------------------------
 // Misc
@@ -395,7 +417,8 @@ function initObjects()
 	
 	addGlobalSprite(bg_texture, [0, 0]);
 	
-	g_Platform = new Platform(0, 512 - 27, 512);
+	addPlatform(0, 512 - 27, 512);
+	addPlatform(100, 350, 250);
 	g_Player = new Player(0, 512 - 27 - 64);
 }
 

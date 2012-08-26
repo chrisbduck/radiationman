@@ -214,14 +214,32 @@ var KEY_LEFT = 37;
 var KEY_RIGHT = 39;
 var KEY_UP = 38;
 var KEY_DOWN = 40;
+var KEY_SPACE = 32;
+var KEY_CTRL = 17;
+var KEY_SHIFT = 16;
+var KEY_ALT = 18;
+var KEY_SUPER = 91;
+var KEY_P = 80;
+var KEY_COMMA = 188;
+var KEY_FULL_STOP = 190;
 
 function updateObjects(time_diff_sec)
 {
-	if (g_PressedKeys[KEY_LEFT])
+	if (g_PressedKeys[KEY_COMMA])
 		time_diff_sec *= 0.5;
-	else if (g_PressedKeys[KEY_RIGHT])
+	else if (g_PressedKeys[KEY_FULL_STOP])
 		time_diff_sec *= 2.0;
 	
+	// Player input & update
+	var player_x_input = 0;
+	if (g_PressedKeys[KEY_LEFT])
+		player_x_input -= 1;
+	if (g_PressedKeys[KEY_RIGHT])
+		player_x_input += 1;
+	player_jump_input = 0;		// not yet
+	g_Player.update(time_diff_sec, player_x_input, player_jump_input);
+	
+	// Object update
 	g_Pyramid.update(time_diff_sec);
 	g_Cube.update(time_diff_sec);
 }
@@ -231,7 +249,8 @@ function renderScene()
 {
 	for (index in g_Sprites)
 		g_Sprites[index].draw();
-	g_Platform.draw();
+	for (index in g_Platforms)
+		g_Platforms[index].draw();
 	g_Player.draw();
 	g_Pyramid.draw();
 	g_Cube.draw();
