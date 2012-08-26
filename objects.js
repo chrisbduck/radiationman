@@ -22,6 +22,8 @@ var g_CubeIndices = null;
 var g_CubeUVs = null;
 var g_CubeNormals = null;
 
+doNothing = function() {};
+
 var JUMP_IMPULSE_PPS = 300;
 var DECELERATION_SCALE = 1.5;
 var SMALL_FLOAT = 0.001;			// small adjustment to avoid rounding errors
@@ -431,12 +433,15 @@ function Player(texture, x, y)
 	this.m_XVelPPSTarget = 180;
 	this.m_CollideRect = [22, 8, 42, 64];
 	this.m_Collided = [false, false, false, false];		// left, top, right, bottom
+	this.m_AbovePlatform = null;
 	this.m_IsOnPlatform = false;
 	this.m_Jumping = false;
 	this.m_Rads = 0.0;
 	this.m_RadsDisplay = 0;
 	this.m_Mutation = 0;
 	this.m_Alive = true;
+	this.hitScreenXEdge = doNothing;
+	this.hitScreenYEdge = doNothing;
 }
 
 //------------------------------------------------------------------------------
@@ -550,43 +555,54 @@ function updatePhysics(object, time_diff_sec)
 function collideWithPlatforms(object)
 {
 	object.m_Collided = [false, false, false, false];
+	object.m_AbovePlatform = null;
 	for (index in g_Platforms)
 		collideRects(object, g_Platforms[index], true);
 	object.m_IsOnPlatform = object.m_Collided[3];	// rect bottom collision
 }
 
 //------------------------------------------------------------------------------
-Player.prototype.updateCollisions = function(time_diff_sec)
+function updateScreenCollisions(object)
 {
 	// Make sure the player stays on screen
-	var min_x = -this.m_CollideRect[0];
-	var max_x = gl.m_ViewportWidth - this.m_CollideRect[2];
-	if (this.m_Position[0] < min_x)
+	var min_x = -object.m_CollideRect[0];
+	var max_x = gl.m_ViewportWidth - object.m_CollideRect[2];
+	if (object.m_Position[0] < min_x)
 	{
-		this.m_Position[0] = min_x;
-		if (this.m_VelocityPPS[0] < 0)
-			this.m_VelocityPPS[0] = 0;
+		object.m_Position[0] = min_x;
+		if (object.m_VelocityPPS[0] < 0)
+			object.m_VelocityPPS[0] = 0;
+		object.hitScreenXEdge();
 	}
-	else if (this.m_Position[0] > max_x)
+	else if (object.m_Position[0] > max_x)
 	{
-		this.m_Position[0] = max_x;
-		if (this.m_VelocityPPS[0] > 0)
-			this.m_VelocityPPS[0] = 0;
+		object.m_Position[0] = max_x;
+		if (object.m_VelocityPPS[0] > 0)
+			object.m_VelocityPPS[0] = 0;
+		object.hitScreenXEdge();
 	}
-	var min_y = -this.m_CollideRect[1];
-	var max_y = gl.m_ViewportHeight - this.m_CollideRect[3];
-	if (this.m_Position[1] < min_y)
+	var min_y = -object.m_CollideRect[1];
+	var max_y = gl.m_ViewportHeight - object.m_CollideRect[3];
+	if (object.m_Position[1] < min_y)
 	{
-		this.m_Position[1] = min_y;
-		if (this.m_VelocityPPS[1] < 0)
-			this.m_VelocityPPS[1] = 0;
+		object.m_Position[1] = min_y;
+		if (object.m_VelocityPPS[1] < 0)
+			object.m_VelocityPPS[1] = 0;
+		object.hitScreenYEdge();
 	}
-	else if (this.m_Position[1] > max_y)
+	else if (object.m_Position[1] > max_y)
 	{
-		this.m_Position[1] = max_y;
-		if (this.m_VelocityPPS[1] > 0)
-			this.m_VelocityPPS[1] = 0;
+		object.m_Position[1] = max_y;
+		if (object.m_VelocityPPS[1] > 0)
+			object.m_VelocityPPS[1] = 0;
+		object.hitScreenYEdge();
 	}
+}
+
+//------------------------------------------------------------------------------
+Player.prototype.updateCollisions = function(time_diff_sec)
+{
+	updateScreenCollisions(this);
 	
 	// Collide the player with all platforms
 	collideWithPlatforms(this);
@@ -749,6 +765,7 @@ function collideRects(adjust_obj, other_obj, do_adjust)
 		{
 			// Collision on the bottom side of obj1 (probably).
 			obj1.m_Collided[3] = true;	// bottom
+			obj1.m_AbovePlatform = obj2;
 			
 			// Move up a bit
 			obj1.m_Position[1] = Obj2Top - obj1.m_CollideRect[3] - SMALL_FLOAT;
@@ -798,9 +815,13 @@ function Robot(position)
 	this.m_Sprite = new Sprite(this.m_Texture, this.m_Position);
 	this.m_XAccelPPSPS = 450;
 	this.m_XVelPPSTarget = 180;
+	this.m_DesiredXDir = +1;
 	this.m_CollideRect = [14, 12, 51, 63];
 	this.m_Collided = [false, false, false, false];
+	this.m_AbovePlatform = null;
 	this.m_IsOnPlatform = false;
+	this.hitScreenXEdge = this.reverseDirection;
+	this.hitScreenYEdge = doNothing;
 }
 
 //------------------------------------------------------------------------------
@@ -814,13 +835,22 @@ Robot.prototype.draw = function()
 //------------------------------------------------------------------------------
 Robot.prototype.update = function(time_diff_sec)
 {
-	updateInput(this, time_diff_sec, 0, 0);
+	x_input = this.m_IsOnPlatform ? this.m_DesiredXDir : 0;
+	updateInput(this, time_diff_sec, x_input, 0);
 	updatePhysics(this, time_diff_sec);
+	
+	updateScreenCollisions(this);
 	collideWithPlatforms(this);
 	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
 	this.m_PrevPosition[1] = this.m_Position[1];	//     they'll point to the same place
+};
+
+//------------------------------------------------------------------------------
+Robot.prototype.reverseDirection = function()
+{
+	this.m_DesiredXDir = -this.m_DesiredXDir;
 };
 
 //------------------------------------------------------------------------------
