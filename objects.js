@@ -360,7 +360,7 @@ Sprite.prototype.draw = function()
 	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, world_matrix);
 	
 	// Positions
-	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Positions);
+	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_VertPositions);
 	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.item_size, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertPos);
 	
