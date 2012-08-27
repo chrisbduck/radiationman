@@ -9,6 +9,7 @@ var g_PlayerTextures;
 var g_PlayerDeadTexture;
 var g_PlatformTexture;
 var g_RobotTexture;
+var g_IntroTexture;
 var g_Platforms = [];
 var g_Robots = [];
 
@@ -949,8 +950,21 @@ function loadTextures()
 	g_PlayerDeadTexture = new Texture('data/dead.png');
 	g_PlatformTexture = new Texture('data/platform.png');
 	g_RobotTexture = new Texture('data/robot.png');
+	g_IntroTexture = new Texture('data/intro.jpg');
 	
-	g_TexturesLoadedCallback = initObjects;
+	g_TexturesLoadedCallback = showIntro;
+}
+
+//------------------------------------------------------------------------------
+function showIntro()
+{
+	// Hide the "loading" image
+	loading_img = document.getElementById("loading");
+	loading_img.hidden = true;
+	
+	g_Running = true;
+	addGlobalSprite(g_IntroTexture, [0, 0]);
+	g_IntroActive = true;
 }
 
 //------------------------------------------------------------------------------
@@ -988,16 +1002,10 @@ function initObjects()
 	for (index in robot_positions)
 		addRobot(robot_positions[index]);
 	
-	// Hide the "loading" image
-	loading_img = document.getElementById("loading");
-	loading_img.hidden = true;
-	
 	// Show the status text
 	status_items = document.getElementsByClassName("status");
 	for (index in status_items)
 		status_items[index].hidden = false;
-	
-	g_Running = true;
 }
 
 //------------------------------------------------------------------------------

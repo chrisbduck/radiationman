@@ -10,6 +10,7 @@ var g_NumLoadingTextures = 0;		// >0 when a texture is loading
 var g_TexInitialisedCount = 0;
 var g_TexturesLoadedCallback;
 var g_CanPlaySound = null;
+var g_Music;
 
 //------------------------------------------------------------------------------
 function initGL(canvas)
@@ -204,7 +205,16 @@ function playSound(file_name)
 	if (!g_CanPlaySound)
 		return;
 	
-	new Audio(file_name).play();
+	sound = new Audio(file_name);
+	sound.play();
+	return sound;
+}
+
+//------------------------------------------------------------------------------
+function playMusic(file_name)
+{
+	g_Music = playSound(file_name);
+	g_Music.loop = true;
 }
 
 //------------------------------------------------------------------------------
