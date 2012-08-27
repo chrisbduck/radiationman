@@ -676,7 +676,7 @@ Player.prototype.updateStatus = function(time_diff_sec)
 //------------------------------------------------------------------------------
 Player.prototype.updateRadsDisplay = function()
 {
-	document.getElementById("rads").innerText = "Rads: " + this.m_RadsDisplay;
+	document.getElementById("rads").innerHTML = "Rads: " + this.m_RadsDisplay;
 	
 		if (this.m_Rads < 25)	status = "OK";
 	else if (this.m_Rads < 50)	status = "Sick";
@@ -688,7 +688,7 @@ Player.prototype.updateRadsDisplay = function()
 		this.m_Alive = false;
 	}
 	
-	document.getElementById("notes").innerText = status;
+	document.getElementById("notes").innerHTML = status;
 	
 	if (!this.m_Alive)
 		this.die();
@@ -705,7 +705,7 @@ Player.prototype.die = function()
 //------------------------------------------------------------------------------
 Player.prototype.win = function()
 {
-	document.getElementById("notes").innerText = "You have reached a new state of being!";
+	document.getElementById("notes").innerHTML = "You have reached a new state of being!";
 	this.m_Won = true;
 }
 
@@ -720,7 +720,7 @@ Player.prototype.updateMutation = function()
 	this.m_Texture = g_PlayerTextures[index];
 	this.m_Sprite.m_Texture = this.m_Texture;
 	
-	document.getElementById("mutation").innerText = text;
+	document.getElementById("mutation").innerHTML = text;
 	
 	// Winning just means fully evolving for now
 	if (index == mutation_strings.length - 1)
