@@ -21,143 +21,6 @@ var g_IntroActive = false;
 var g_RobotJump = false;
 
 //------------------------------------------------------------------------------
-// Mesh
-//------------------------------------------------------------------------------
-function Mesh(positions, indices, uvs, normals, primitive_type, texture)
-{
-	this.m_VertPositions = positions;
-	this.m_Indices = indices;
-	this.m_UVs = uvs;
-	this.m_Normals = normals;
-	this.m_PrimitiveType = primitive_type;
-	this.m_RotationDeg = [0, 0];
-	this.m_RotationDegPerSec = [0, 0];
-	this.m_Translation = [0, 0, 0];			// 3D position
-	this.m_Position = null;					// 2D position (later)
-	this.m_RotationAxis = [null, null];
-	this.m_Lighting = true;
-	this.m_Ambient = 0.5;
-	this.m_Lit = 0.5;
-	this.m_Alpha = 1.0;
-	this.m_Texture = texture;
-	this.m_ShaderProg = g_LitMeshProg;
-	this.m_Scale = 1.0;
-}
-
-//------------------------------------------------------------------------------
-Mesh.prototype.setTranslation = function(translation) { this.m_Translation = translation; };
-Mesh.prototype.setPosition = function(position) { this.m_Position = position; }
-Mesh.prototype.setTexture = function(texture) { this.m_Texture = texture; };
-Mesh.prototype.setLighting = function(active) { this.m_Lighting = active; };
-Mesh.prototype.setLightingLevel = function(ambient, lit) { this.m_Ambient = ambient; this.m_Lit = lit; }
-Mesh.prototype.setAlpha = function(alpha) { this.m_Alpha = alpha; };
-Mesh.prototype.setScale = function(scale) { this.m_Scale = scale; };
-
-//------------------------------------------------------------------------------
-Mesh.prototype.setRotation = function(index, axis, deg_per_sec)
-{
-	this.m_RotationDeg[index] = 0.0;
-	this.m_RotationDegPerSec[index] = deg_per_sec;
-	this.m_RotationAxis[index] = axis;
-};
-
-//------------------------------------------------------------------------------
-Mesh.prototype.accelerate = function(index, accel_deg_per_sec)
-{
-	this.m_RotationDegPerSec[index] += accel_deg_per_sec;
-}
-
-//------------------------------------------------------------------------------
-Mesh.prototype.update = function(time_diff_sec)
-{
-	for (index in this.m_RotationDeg)
-		this.m_RotationDeg[index] += this.m_RotationDegPerSec[index] * time_diff_sec;
-}
-
-//------------------------------------------------------------------------------
-Mesh.prototype.draw = function()
-{
-	prog = this.m_ShaderProg;
-	gl.useProgram(prog);
-	
-	// Model/view matrix
-	var model_view_matrix = mat4.create();
-	mat4.identity(model_view_matrix);
-	mat4.translate(model_view_matrix, this.m_Translation);
-	var rotation_rad = this.m_RotationDeg[0] * Math.PI / 180;
-	mat4.rotate(model_view_matrix, rotation_rad, this.m_RotationAxis[0]);
-	rotation_rad = this.m_RotationDeg[1] * Math.PI / 180;
-	mat4.rotate(model_view_matrix, rotation_rad, this.m_RotationAxis[1]);
-	mat4.scale(model_view_matrix, [this.m_Scale, this.m_Scale, this.m_Scale]);
-	
-	gl.uniformMatrix4fv(prog.u_ProjMatrix, false, g_ProjMatrix);
-	gl.uniformMatrix4fv(prog.u_WorldMatrix, false, model_view_matrix);
-	
-	// Normal matrix
-	var normal_matrix = mat3.create();
-	mat4.toInverseMat3(model_view_matrix, normal_matrix);
-	mat3.transpose(normal_matrix);
-	gl.uniformMatrix3fv(prog.u_NormalMatrix, false, normal_matrix);
-	
-	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_VertPositions);
-	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.item_size, gl.FLOAT,
-						   false, 0, 0);
-	gl.enableVertexAttribArray(prog.a_VertPos);
-	
-	if (this.m_UVs !== null)
-	{
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
-		gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT,
-							   false, 0, 0);
-		gl.enableVertexAttribArray(prog.a_VertUV);
-		
-		this.m_Texture.use(prog);
-		
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Normals);
-		gl.vertexAttribPointer(prog.a_VertNormal, this.m_Normals.item_size,
-							   gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(prog.a_VertNormal);
-		
-		gl.uniform1i(prog.u_UseLighting, this.m_Lighting);
-		
-		if (this.m_Lighting)
-		{
-			gl.uniform3f(prog.u_AmbientCol, this.m_Ambient, this.m_Ambient, this.m_Ambient);
-			var lighting_dir = vec3.create([0.0, -1.0, 0.0]);
-			//vec3.normalize(lighting_dir);
-			gl.uniform3fv(prog.u_LightingDir, lighting_dir);
-			gl.uniform3f(prog.u_LightingCol, this.m_Lit, this.m_Lit, this.m_Lit);
-		}
-		
-		if (this.m_Alpha < 1.0)
-		{
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-			gl.uniform1f(prog.u_Alpha, this.m_Alpha);
-			gl.disable(gl.DEPTH_TEST);
-		}
-		else
-		{
-			gl.disable(gl.BLEND);
-			gl.enable(gl.DEPTH_TEST);
-		}
-	}
-	
-	if (this.m_Indices !== null)
-	{
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_Indices);
-		gl.drawElements(this.m_PrimitiveType, this.m_Indices.num_items,
-						gl.UNSIGNED_SHORT, 0);
-	}
-	else
-		gl.drawArrays(this.m_PrimitiveType, 0, this.m_VertPositions.num_items);
-	
-	gl.disableVertexAttribArray(prog.a_VertPos);
-	gl.disableVertexAttribArray(prog.a_VertUV);
-	gl.disableVertexAttribArray(prog.a_VertNormal);
-};
-
-//------------------------------------------------------------------------------
 function initShaders()
 {
 	g_LitMeshProg = getShaderProg("lit-mesh-vs", "lit-mesh-fs",
@@ -170,50 +33,6 @@ function initShaders()
 	g_SpriteProg = getShaderProg("sprite-vs", "sprite-fs",
 								 ["a_VertPos", "a_VertUV",
 								  "u_WorldMatrix", "u_Sampler", "u_Col"]);
-}
-
-//------------------------------------------------------------------------------
-function getShaderProg(vertex_shader_name, fragment_shader_name, properties)
-{
-	// Find the source
-	var vertex_shader = getShader(vertex_shader_name);
-	var fragment_shader = getShader(fragment_shader_name);
-	if (vertex_shader === null || fragment_shader === null)
-	{
-		var msg = "Shader(s) missing:";
-		if (vertex_shader === null)
-			msg += " " + vertex_shader_name;
-		if (fragment_shader === null)
-			msg += " " + fragment_shader_name;
-		alert(msg);
-		return;
-	}
-	
-	// Compile and link
-	var shader_prog = gl.createProgram();
-	gl.attachShader(shader_prog, vertex_shader);
-	gl.attachShader(shader_prog, fragment_shader);
-	gl.linkProgram(shader_prog);
-	if (!gl.getProgramParameter(shader_prog, gl.LINK_STATUS))
-	{
-		alert("Shader init failed: " + vertex_shader_name + " + " + fragment_shader_name);
-		return;
-	}
-	
-	// Get appropriate attributes and uniforms
-	for (index in properties)
-	{
-		prop = properties[index];
-		if (prop[1] == '_')			// a_, u_
-		{
-			if (prop[0] == 'a')
-				shader_prog[prop] = gl.getAttribLocation(shader_prog, prop);
-			else if (prop[0] == 'u')
-				shader_prog[prop] = gl.getUniformLocation(shader_prog, prop);
-		}
-	}
-	
-	return shader_prog;
 }
 
 //------------------------------------------------------------------------------
@@ -314,6 +133,14 @@ function renderScene()
 		g_Pyramids[index].draw();
 	for (index in g_Cubes)
 		g_Cubes[index].draw();
+}
+
+//------------------------------------------------------------------------------
+function startGame()
+{
+	webGLStart();
+	initScene();
+	updateScene();		// start update loop running
 }
 
 //------------------------------------------------------------------------------
