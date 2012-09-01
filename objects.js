@@ -18,17 +18,6 @@ var g_PyramidSound;
 var g_CubeSound;
 var g_DeathSound;
 
-// Pyramids
-var g_PyramidPositions = null;
-var g_PyramidUVs = null;
-var g_PyramidNormals = null;
-
-// Cubes
-var g_CubePositions = null;
-var g_CubeIndices = null;
-var g_CubeUVs = null;
-var g_CubeNormals = null;
-
 doNothing = function() {};
 
 var PLAYER_JUMP_IMPULSE_PPS = 440;
