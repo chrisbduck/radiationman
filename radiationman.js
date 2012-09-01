@@ -15,9 +15,10 @@ var g_Cubes = [];
 var g_Pyramids = [];
 var g_ProjMatrix;
 var g_Sprites = [];
-var g_GravityPPSPS = 250;
+var g_GravityPPSPS = 600;
 var g_Running = false;
 var g_IntroActive = false;
+var g_RobotJump = false;
 
 //------------------------------------------------------------------------------
 // Mesh
@@ -235,6 +236,7 @@ var KEY_SHIFT = 16;
 var KEY_ALT = 18;
 var KEY_SUPER = 91;
 var KEY_P = 80;
+var KEY_J = 74;
 var KEY_M = 77;
 var KEY_COMMA = 188;
 var KEY_FULL_STOP = 190;
@@ -270,6 +272,10 @@ function updateObjects(time_diff_sec)
 		time_diff_sec *= 0.5;
 	else if (g_PressedKeys[KEY_FULL_STOP])
 		time_diff_sec *= 2.0;
+	if (g_PressedKeys[KEY_J])
+		g_RobotJump = true;
+	else
+		g_RobotJump = false;
 	
 	// Player input & update
 	var player_x_input = 0;

@@ -31,8 +31,8 @@ var g_CubeNormals = null;
 
 doNothing = function() {};
 
-var PLAYER_JUMP_IMPULSE_PPS = 300;
-var ROBOT_JUMP_IMPULSE_PPS = 200;
+var PLAYER_JUMP_IMPULSE_PPS = 450;
+var ROBOT_JUMP_IMPULSE_PPS = 400;
 var DECELERATION_SCALE = 1.5;
 var SMALL_FLOAT = 0.001;			// small adjustment to avoid rounding errors
 var RADS_PER_SEC = 1.5;
@@ -626,38 +626,41 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 	// Collide the player with all platforms
 	collideWithPlatforms(this);
 	
-	// Check for collisions with pyramids
-	var delete_indices = [];
-	for (index in g_Pyramids)
-		if (collideSphere(this, g_Pyramids[index]))
-		{
-			this.m_Rads = Math.max(this.m_Rads - RADS_HEALED_PER_PYRAMID, 0);
-			g_PyramidSound.play();
-			delete_indices = delete_indices.concat([index]);
-		}
-	delete_indices.reverse();
-	for (index in delete_indices)
-		g_Pyramids.splice(delete_indices[index], 1);
-	
-	// Check for collisions with cubes
-	delete_indices = [];
-	for (index in g_Cubes)
-		if (collideSphere(this, g_Cubes[index]))
-		{
-			this.m_Mutation++;
-			this.updateMutation();
-			g_CubeSound.play();
-			delete_indices = delete_indices.concat([index]);
-		}
-	delete_indices.reverse();
-	for (index in delete_indices)
-		g_Cubes.splice(delete_indices[index], 1);
-	
-	// Check for collisions with robots
-	this.m_TouchingRobots = 0;
-	for (index in g_Robots)
-		if (collideRects(this, g_Robots[index]))
-			this.m_TouchingRobots++;
+	if (this.m_Alive)
+	{
+		// Check for collisions with pyramids
+		var delete_indices = [];
+		for (index in g_Pyramids)
+			if (collideSphere(this, g_Pyramids[index]))
+			{
+				this.m_Rads = Math.max(this.m_Rads - RADS_HEALED_PER_PYRAMID, 0);
+				g_PyramidSound.play();
+				delete_indices = delete_indices.concat([index]);
+			}
+		delete_indices.reverse();
+		for (index in delete_indices)
+			g_Pyramids.splice(delete_indices[index], 1);
+		
+		// Check for collisions with cubes
+		delete_indices = [];
+		for (index in g_Cubes)
+			if (collideSphere(this, g_Cubes[index]))
+			{
+				this.m_Mutation++;
+				this.updateMutation();
+				g_CubeSound.play();
+				delete_indices = delete_indices.concat([index]);
+			}
+		delete_indices.reverse();
+		for (index in delete_indices)
+			g_Cubes.splice(delete_indices[index], 1);
+		
+		// Check for collisions with robots
+		this.m_TouchingRobots = 0;
+		for (index in g_Robots)
+			if (collideRects(this, g_Robots[index]))
+				this.m_TouchingRobots++;
+	}
 	
 	// Store positions for next time
 	this.m_PrevPosition[0] = this.m_Position[0];	// don't assign the entire object, or
@@ -891,7 +894,9 @@ Robot.prototype.update = function(time_diff_sec)
 	// Calculate input
 	var x_input = this.m_IsOnPlatform ? this.m_DesiredXDir : 0;
 	var jump_input = 0;
-	if (this.m_IsOnPlatform && this.m_TimeToNextJump <= 0 && this.m_TimeToNextJump !== null)
+	if (this.m_IsOnPlatform &&
+			((this.m_TimeToNextJump <= 0 && this.m_TimeToNextJump !== null)
+			  || g_RobotJump))
 		jump_input = 1;
 	if (jump_input || this.m_TimeToNextJump === null)
 		this.m_TimeToNextJump = getRandom(2, 10);
