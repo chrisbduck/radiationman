@@ -221,7 +221,7 @@ function initScene()
 	g_ProjMatrix = getProjectionMatrix();
 	initShaders();
 	playMusic("data/music/cheese.ogg");
-	loadTextures();		// initObjects is called via callback when this finishes
+	loadResources();		// initObjects is called via callback when this finishes
 }
 
 //------------------------------------------------------------------------------

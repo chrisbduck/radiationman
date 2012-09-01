@@ -13,6 +13,11 @@ var g_IntroTexture;
 var g_Platforms = [];
 var g_Robots = [];
 
+var g_JumpSound;
+var g_PyramidSound;
+var g_CubeSound;
+var g_DeathSound;
+
 // Pyramids
 var g_PyramidPositions = null;
 var g_PyramidUVs = null;
@@ -498,7 +503,7 @@ function updateInput(object, time_diff_sec, x_input, jump_input)
 				object.m_VelocityPPS[1] = -object.m_JumpImpulsePPS;
 				object.m_Jumping = true;
 				if (object === g_Player)
-					playSound("data/sfx/Jump6.ogg");
+					g_JumpSound.play();
 			}
 		}
 	}
@@ -627,7 +632,7 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 		if (collideSphere(this, g_Pyramids[index]))
 		{
 			this.m_Rads = Math.max(this.m_Rads - RADS_HEALED_PER_PYRAMID, 0);
-			playSound("data/sfx/Pickup_Coin5.ogg");
+			g_PyramidSound.play();
 			delete_indices = delete_indices.concat([index]);
 		}
 	delete_indices.reverse();
@@ -641,7 +646,7 @@ Player.prototype.updateCollisions = function(time_diff_sec)
 		{
 			this.m_Mutation++;
 			this.updateMutation();
-			playSound("data/sfx/Powerup3.ogg");
+			g_CubeSound.play();
 			delete_indices = delete_indices.concat([index]);
 		}
 	delete_indices.reverse();
@@ -699,7 +704,7 @@ Player.prototype.die = function()
 {
 	this.m_Texture = g_PlayerDeadTexture;
 	this.m_Sprite.m_Texture = g_PlayerDeadTexture;
-	playSound("data/sfx/Explosion2.ogg");
+	g_DeathSound.play();
 };
 
 //------------------------------------------------------------------------------
@@ -940,7 +945,7 @@ function addRobot(position)
 //------------------------------------------------------------------------------
 // Misc
 //------------------------------------------------------------------------------
-function loadTextures()
+function loadResources()
 {
 	g_BGTexture = new Texture('data/sort-of-cloudy.jpg');
 	g_LavaTexture = new Texture('data/collectable-sm.png');
@@ -952,7 +957,12 @@ function loadTextures()
 	g_RobotTexture = new Texture('data/robot.png');
 	g_IntroTexture = new Texture('data/intro.jpg');
 	
-	g_TexturesLoadedCallback = showIntro;
+	g_JumpSound = new Sound('data/sfx/Jump6.ogg');
+	g_PyramidSound = new Sound('data/sfx/Pickup_Coin5.ogg');
+	g_CubeSound = new Sound('data/sfx/Powerup3.ogg');
+	g_DeathSound = new Sound('data/sfx/Explosion2.ogg');
+	
+	g_ResourcesLoadedCallback = showIntro;
 }
 
 //------------------------------------------------------------------------------

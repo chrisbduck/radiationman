@@ -7,8 +7,9 @@ var g_PressedKeys = {};
 var g_LastUpdateTimeSec;
 var g_Textures = [];
 var g_NumLoadingTextures = 0;		// >0 when a texture is loading
+var g_NumLoadingResources = 0;		// >0 when a texture or sound is loading
 var g_TexInitialisedCount = 0;
-var g_TexturesLoadedCallback;
+var g_ResourcesLoadedCallback;
 var g_CanPlaySound = null;
 var g_Music;
 
@@ -104,6 +105,7 @@ function Texture(file_name)
 {
 	g_Textures = g_Textures.concat([this]);
 	g_NumLoadingTextures += 1;
+	g_NumLoadingResources += 1;
 	
 	texture = this;
 	this.gltexture = gl.createTexture();
@@ -123,15 +125,15 @@ function handleLoadedTexture()
 	{
 		// All textures have loaded.  Initialise them
 		var init_up_to = g_Textures.length;
+		var num_textures_to_init = init_up_to - g_TexInitialisedCount;
 		for (index = g_TexInitialisedCount; index < init_up_to; ++index)
 			g_Textures[index].init();
 		g_TexInitialisedCount = init_up_to;
 		
-		// Assuming nothing strange has happened (other texture loads being started in another thread?),
-		// activate the callback now
+		// Assume nothing strange has happened (other texture loads being started in another thread?)
 		console.assert(g_NumLoadingTextures == 0);
-		if (g_TexturesLoadedCallback !== null)
-			g_TexturesLoadedCallback();
+		
+		handleLoadedResources(num_textures_to_init);
 	}
 }
 
@@ -193,7 +195,7 @@ function get3DPosFrom2D(desired_x, desired_y)
 }
 
 //------------------------------------------------------------------------------
-function playSound(file_name)
+function Sound(file_name)
 {
 	if (g_CanPlaySound === null)
 	{
@@ -203,18 +205,61 @@ function playSound(file_name)
 			console.log("Can't play sound! :(");
 	}
 	if (!g_CanPlaySound)
+	{
+		this.sound = null;
+		return;
+	}
+	
+	g_NumLoadingResources += 2;
+	
+	this.sound = [null, null];
+	for (index in this.sound)
+	{
+		this.sound[index] = new Audio(file_name);
+		this.sound[index].onloadeddata = handleLoadedSound;
+	}
+	this.current_index = 0;
+}
+
+//------------------------------------------------------------------------------
+Sound.prototype.play = function()
+{
+	if (this.sound === null)
 		return;
 	
-	sound = new Audio(file_name);
-	sound.play();
-	return sound;
+	this.sound[this.current_index].play();
+	this.current_index = 1 - this.current_index;
+	this.sound[this.current_index].currentTime = 0;
+};
+
+//------------------------------------------------------------------------------
+function handleLoadedSound()
+{
+	handleLoadedResources(1);
+}
+
+//------------------------------------------------------------------------------
+function handleLoadedResources(num_loaded_resources)
+{
+	g_NumLoadingResources -= num_loaded_resources;
+	if (g_NumLoadingResources == 0)
+	{
+		// activate the callback now
+		if (g_ResourcesLoadedCallback !== null)
+		{
+			g_ResourcesLoadedCallback();
+			g_ResourcesLoadedCallback = null;
+		}
+	}
 }
 
 //------------------------------------------------------------------------------
 function playMusic(file_name)
 {
-	g_Music = playSound(file_name);
+	// Delay doesn't really matter here
+	g_Music = new Audio(file_name);
 	g_Music.loop = true;
+	g_Music.play();
 }
 
 //------------------------------------------------------------------------------
