@@ -49,8 +49,8 @@ function createStaticFloatBuffer(values, item_size, num_items)
 	buffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(values), gl.STATIC_DRAW);
-	buffer.item_size = item_size;
-	buffer.num_items = num_items;
+	buffer.m_ItemSize = item_size;
+	buffer.m_NumItems = num_items;
 	return buffer;
 }
 
@@ -60,8 +60,8 @@ function createStaticUint16Buffer(values, item_size, num_items)
 	buffer = gl.createBuffer();
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(values), gl.STATIC_DRAW);
-	buffer.item_size = item_size;
-	buffer.num_items = num_items;
+	buffer.m_ItemSize = item_size;
+	buffer.m_NumItems = num_items;
 	return buffer;
 }
 
@@ -335,12 +335,12 @@ Sprite.prototype.draw = function()
 	
 	// Positions
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_VertPositions);
-	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.item_size, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.m_ItemSize, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertPos);
 	
 	// UVs
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
-	gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.m_ItemSize, gl.FLOAT, false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertUV);
 	
 	// Texture
@@ -353,7 +353,7 @@ Sprite.prototype.draw = function()
 	gl.disable(gl.DEPTH_TEST);
 	
 	// Draw
-	gl.drawArrays(gl.TRIANGLE_FAN, 0, this.m_VertPositions.num_items);
+	gl.drawArrays(gl.TRIANGLE_FAN, 0, this.m_VertPositions.m_NumItems);
 	
 	// Clean up
 	gl.disableVertexAttribArray(prog.a_VertPos);
@@ -441,21 +441,21 @@ Mesh.prototype.draw = function()
 	gl.uniformMatrix3fv(prog.u_NormalMatrix, false, normal_matrix);
 	
 	gl.bindBuffer(gl.ARRAY_BUFFER, this.m_VertPositions);
-	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.item_size, gl.FLOAT,
+	gl.vertexAttribPointer(prog.a_VertPos, this.m_VertPositions.m_ItemSize, gl.FLOAT,
 						   false, 0, 0);
 	gl.enableVertexAttribArray(prog.a_VertPos);
 	
 	if (this.m_UVs !== null)
 	{
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_UVs);
-		gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.item_size, gl.FLOAT,
+		gl.vertexAttribPointer(prog.a_VertUV, this.m_UVs.m_ItemSize, gl.FLOAT,
 							   false, 0, 0);
 		gl.enableVertexAttribArray(prog.a_VertUV);
 		
 		this.m_Texture.use(prog);
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, this.m_Normals);
-		gl.vertexAttribPointer(prog.a_VertNormal, this.m_Normals.item_size,
+		gl.vertexAttribPointer(prog.a_VertNormal, this.m_Normals.m_ItemSize,
 							   gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(prog.a_VertNormal);
 		
@@ -487,11 +487,11 @@ Mesh.prototype.draw = function()
 	if (this.m_Indices !== null)
 	{
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.m_Indices);
-		gl.drawElements(this.m_PrimitiveType, this.m_Indices.num_items,
+		gl.drawElements(this.m_PrimitiveType, this.m_Indices.m_NumItems,
 						gl.UNSIGNED_SHORT, 0);
 	}
 	else
-		gl.drawArrays(this.m_PrimitiveType, 0, this.m_VertPositions.num_items);
+		gl.drawArrays(this.m_PrimitiveType, 0, this.m_VertPositions.m_NumItems);
 	
 	gl.disableVertexAttribArray(prog.a_VertPos);
 	gl.disableVertexAttribArray(prog.a_VertUV);
