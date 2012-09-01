@@ -216,7 +216,7 @@ function Sound(file_name)
 	for (index in this.sound)
 	{
 		this.sound[index] = new Audio(file_name);
-		this.sound[index].onloadeddata = handleLoadedSound;
+		this.sound[index].addEventListener("loadeddata", handleLoadedSound, false);
 	}
 	this.current_index = 0;
 }
