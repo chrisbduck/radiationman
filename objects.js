@@ -31,7 +31,7 @@ var g_CubeNormals = null;
 
 doNothing = function() {};
 
-var PLAYER_JUMP_IMPULSE_PPS = 450;
+var PLAYER_JUMP_IMPULSE_PPS = 440;
 var ROBOT_JUMP_IMPULSE_PPS = 400;
 var DECELERATION_SCALE = 1.5;
 var SMALL_FLOAT = 0.001;			// small adjustment to avoid rounding errors
